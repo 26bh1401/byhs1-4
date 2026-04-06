@@ -25,7 +25,7 @@
         <div class="max-w-4xl mx-auto w-full flex min-w-[420px]">
             <button id="tab-exam" class="flex-1 py-4 font-bold tab-active transition-all text-[13px]">🗓️ 학업 일정</button>
             <button id="tab-pl" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-x border-gray-50">🏆 부리미어 리그</button>
-            <button id="tab-meal" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-r border-gray-50">🍱 오늘 급식</button>
+            <button id="tab-meal" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-r border-gray-50">🍱 급식</button>
             <button id="tab-board" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px]">💬 게시판</button>
         </div>
     </nav>
@@ -43,7 +43,7 @@
                 </div>
             </section>
             <section class="card border-t-4 border-yellow-400">
-                <h2 class="title"><i class="fas fa-bolt text-yellow-500"></i> 오늘의 공지</h2>
+                <h2 class="title"><i class="fas fa-bolt text-yellow-500"></i> 공지</h2>
                 <div id="notice-content" class="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-wrap"></div>
             </section>
             <section class="card"><h2 class="title mb-4">🗓️ 수행평가 리스트</h2><div class="overflow-hidden rounded-xl border border-gray-100"><table class="w-full text-left text-sm"><thead class="bg-gray-50 text-gray-400 font-bold"><tr><th class="p-4">과목</th><th class="p-4">내용</th><th class="p-4 text-right">마감</th></tr></thead><tbody id="assessment-list" class="divide-y divide-gray-50"></tbody></table></div></section>
@@ -53,7 +53,7 @@
         <div id="content-pl" class="hidden">
             <section class="card !bg-slate-900 border-none text-white p-8">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-2xl font-black italic tracking-tighter text-cyan-400 underline decoration-cyan-500/30">BOORIMIER LEAGUE</h2>
+                    <h2 class="text-2xl font-black italic tracking-tighter text-cyan-400 underline decoration-cyan-500/30">부리미어리그</h2>
                     <i class="fas fa-trophy text-yellow-400 text-2xl animate-bounce"></i>
                 </div>
                 <div id="pl-main-content" class="min-h-[200px] flex items-center justify-center text-center"></div>
@@ -90,7 +90,7 @@
         </div>
 
         <section id="admin-panel" class="hidden mt-10 p-8 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl relative z-[100]">
-            <h2 class="text-xl font-black mb-6 text-cyan-400 italic">ADMIN DASHBOARD</h2>
+            <h2 class="text-xl font-black mb-6 text-cyan-400 italic">관리자 수정</h2>
             <div class="space-y-4 text-sm text-slate-300">
                 <div><label class="block mb-2 font-bold">시험 날짜</label><input type="date" id="input-date" class="admin-input"></div>
                 <div><label class="block mb-2 font-bold">수행평가 (과목|내용|MM.DD)</label><textarea id="input-assessments" class="admin-input h-24" placeholder="수학|문제풀이|04.15"></textarea></div>
