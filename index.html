@@ -6,7 +6,8 @@
     <title>1-4반 통합 게시판</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css"> </head>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
     <header class="bg-indigo-600 text-white py-6 px-4 shadow-lg relative">
@@ -38,6 +39,22 @@
                     </div>
                 </div>
             </section>
+
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-orange-400">
+                    <h2 class="text-lg font-bold mb-3 flex items-center text-gray-700">
+                        <i class="fas fa-bullhorn mr-2 text-orange-400"></i>공지사항
+                    </h2>
+                    <div id="notice-content" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">내용을 불러오는 중...</div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-cyan-500">
+                    <h2 class="text-lg font-bold mb-3 flex items-center text-gray-700">
+                        <i class="fas fa-futbol mr-2 text-cyan-500"></i>다음 프리미어리그 일정
+                    </h2>
+                    <div id="pl-content" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">일정을 불러오는 중...</div>
+                </div>
+            </section>
+
             <section class="mb-8">
                 <h2 class="text-xl font-bold mb-4 flex items-center"><span class="bg-yellow-400 w-1.5 h-6 mr-2 rounded-full"></span>수행평가 일정</h2>
                 <div class="overflow-x-auto rounded-xl shadow-sm border bg-white">
@@ -49,6 +66,7 @@
                     </table>
                 </div>
             </section>
+
             <section>
                 <h2 class="text-xl font-bold mb-4 flex items-center"><span class="bg-green-400 w-1.5 h-6 mr-2 rounded-full"></span>시험 범위</h2>
                 <div id="range-cards" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
@@ -71,8 +89,10 @@
             <h2 class="text-lg font-bold mb-4 text-yellow-400"><i class="fas fa-tools mr-2"></i>관리자 데이터 수정</h2>
             <div class="grid grid-cols-1 gap-4 text-sm">
                 <input type="date" id="input-date" class="w-full bg-gray-800 p-2 rounded text-white border-none">
-                <textarea id="input-assessments" class="w-full bg-gray-800 p-2 rounded h-24 text-white" placeholder="수학|포트폴리오|04.15"></textarea>
-                <textarea id="input-ranges" class="w-full bg-gray-800 p-2 rounded h-24 text-white" placeholder="과학:1단원~3단원"></textarea>
+                <textarea id="input-assessments" class="w-full bg-gray-800 p-2 rounded h-20 text-white" placeholder="수행평가 (과목|내용|날짜)"></textarea>
+                <textarea id="input-ranges" class="w-full bg-gray-800 p-2 rounded h-20 text-white" placeholder="시험 범위 (과목:내용)"></textarea>
+                <textarea id="input-notice" class="w-full bg-gray-800 p-2 rounded h-20 text-white" placeholder="공지사항 입력"></textarea>
+                <textarea id="input-pl" class="w-full bg-gray-800 p-2 rounded h-20 text-white" placeholder="PL 일정 입력"></textarea>
                 <button id="saveBtn" class="bg-yellow-500 text-black font-black py-3 rounded-xl hover:bg-yellow-400 transition">서버에 저장하기</button>
             </div>
         </section>
