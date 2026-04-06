@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .tab-active { border-bottom: 4px solid #4f46e5; color: #4f46e5; font-weight: bold; }
+        /* 링크 스타일 */
+        .auto-link { color: #2563eb; text-decoration: underline; font-weight: 500; }
+        .auto-link:hover { color: #1e40af; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
@@ -38,7 +41,7 @@
                     </div>
                     <div class="bg-red-50 p-4 rounded-xl md:col-span-2">
                         <p class="text-xs text-red-400 font-bold mb-1">🔥 가장 가까운 수행평가</p>
-                        <p id="nearest-assessment" class="text-lg font-bold text-red-600 italic">로딩 중...</p>
+                        <p id="nearest-assessment" class="text-lg font-bold text-red-600 italic font-sans">로딩 중...</p>
                     </div>
                 </div>
             </section>
@@ -66,7 +69,7 @@
                 <h2 class="text-xl font-bold mb-4">💬 우리반 한마디</h2>
                 <div id="post-input-section" class="hidden mb-6">
                     <textarea id="post-text" class="w-full p-4 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" rows="2" placeholder="친구들에게 남길 말을 적어보세요!"></textarea>
-                    <button onclick="addPost()" class="w-full mt-2 bg-indigo-600 text-white font-bold py-3 rounded-xl">게시하기</button>
+                    <button onclick="addPost()" class="w-full mt-2 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700">게시하기</button>
                 </div>
                 <div id="post-login-msg" class="text-center py-4 text-gray-400 text-sm border-2 border-dashed rounded-xl mb-6">
                     로그인하면 글을 남길 수 있습니다.
@@ -75,13 +78,22 @@
             </section>
         </div>
 
-        <section id="admin-panel" class="hidden mt-10 p-6 bg-gray-900 rounded-3xl text-white">
-            <h2 class="text-lg font-bold mb-4 text-yellow-400">🛠️ 관리자 데이터 수정</h2>
+        <section id="admin-panel" class="hidden mt-10 p-6 bg-gray-900 rounded-3xl text-white shadow-2xl">
+            <h2 class="text-lg font-bold mb-4 text-yellow-400"><i class="fas fa-tools mr-2"></i>관리자 데이터 수정</h2>
             <div class="grid grid-cols-1 gap-4 text-sm">
-                <input type="date" id="input-date" class="bg-gray-800 p-2 rounded border-none">
-                <textarea id="input-assessments" class="bg-gray-800 p-2 rounded h-24" placeholder="과목|내용|날짜 (한 줄에 하나씩)"></textarea>
-                <textarea id="input-ranges" class="bg-gray-800 p-2 rounded h-24" placeholder="과목:상세내용 (한 줄에 하나씩)"></textarea>
-                <button onclick="saveData()" class="bg-yellow-500 text-black font-bold py-2 rounded">서버에 저장하기</button>
+                <div>
+                    <label class="text-gray-400 block mb-1">시험 날짜</label>
+                    <input type="date" id="input-date" class="w-full bg-gray-800 p-2 rounded border-none text-white">
+                </div>
+                <div>
+                    <label class="text-gray-400 block mb-1">수행평가 (과목|내용|날짜)</label>
+                    <textarea id="input-assessments" class="w-full bg-gray-800 p-2 rounded h-24 text-white" placeholder="수학|포트폴리오|04.15"></textarea>
+                </div>
+                <div>
+                    <label class="text-gray-400 block mb-1">시험 범위 (과목:상세내용)</label>
+                    <textarea id="input-ranges" class="w-full bg-gray-800 p-2 rounded h-24 text-white" placeholder="과학:1단원~3단원"></textarea>
+                </div>
+                <button onclick="saveData()" class="bg-yellow-500 text-black font-black py-3 rounded-xl hover:bg-yellow-400 transition">서버에 저장하기</button>
             </div>
         </section>
 
@@ -106,10 +118,15 @@
         const db = getFirestore();
         const provider = new GoogleAuthProvider();
 
-        const ADMIN_EMAIL = "kr.craft1016@gmail.com"; // 도현님 이메일
+        const ADMIN_EMAIL = "kr.craft1016@gmail.com"; 
         const dataDoc = doc(db, "classData", "main");
 
-        // 탭 전환 로직
+        // 하이퍼링크 변환 함수
+        const linkify = (text) => {
+            const urlPattern = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlPattern, '<a href="$1" target="_blank" class="auto-link">$1</a>');
+        };
+
         window.switchTab = (tab) => {
             document.getElementById('content-exam').classList.toggle('hidden', tab !== 'exam');
             document.getElementById('content-board').classList.toggle('hidden', tab !== 'board');
@@ -117,84 +134,81 @@
             document.getElementById('tab-board').className = tab === 'board' ? 'flex-1 py-4 text-center tab-active' : 'flex-1 py-4 text-center text-gray-500';
         };
 
-        // 실시간 데이터 감시 (시험/수행)
         onSnapshot(dataDoc, (snap) => {
             if (snap.exists()) {
                 const data = snap.data();
-                // 디데이
                 const diff = new Date(data.examDate) - new Date();
                 const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                document.getElementById('exam-dday').innerText = days > 0 ? `D-${days}` : (days === 0 ? "Today" : "종료");
+                document.getElementById('exam-dday').innerText = days > 0 ? `D-${days}` : (days === 0 ? "D-Day" : "종료");
 
-                // 수행평가 리스트 & 가장 가까운 수행 찾기
                 const listBody = document.getElementById('assessment-list');
                 listBody.innerHTML = "";
                 const rows = data.rawAssessments.split('\n').filter(r => r.includes('|'));
                 
                 if(rows.length > 0) {
-                    document.getElementById('nearest-assessment').innerText = rows[0].replace('|', ' - ').split('|')[0] + " (" + rows[0].split('|')[2] + ")";
+                    const firstRow = rows[0].split('|');
+                    document.getElementById('nearest-assessment').innerHTML = `${firstRow[0]} - ${linkify(firstRow[1])} (${firstRow[2]})`;
                     rows.forEach(row => {
                         const [sub, con, dat] = row.split('|');
-                        listBody.innerHTML += `<tr><td class="p-4 font-bold text-indigo-600">${sub}</td><td class="p-4 text-gray-500">${con}</td><td class="p-4 text-xs font-bold text-blue-500">${dat}</td></tr>`;
+                        listBody.innerHTML += `<tr><td class="p-4 font-bold text-indigo-600">${sub}</td><td class="p-4 text-gray-500">${linkify(con)}</td><td class="p-4 text-xs font-bold text-blue-500">${dat}</td></tr>`;
                     });
                 }
 
-                // 시험 범위
                 const cardCont = document.getElementById('range-cards');
                 cardCont.innerHTML = "";
                 data.rawRanges.split('\n').forEach(line => {
                     if(line.includes(':')) {
                         const [t, d] = line.split(':');
-                        cardCont.innerHTML += `<div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><h3 class="font-bold text-green-700 mb-1">${t}</h3><p class="text-xs text-gray-500">${d}</p></div>`;
+                        cardCont.innerHTML += `<div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><h3 class="font-bold text-green-700 mb-1">${t}</h3><p class="text-xs text-gray-500">${linkify(d)}</p></div>`;
                     }
                 });
 
-                // 관리자 창에 기존 데이터 세팅
                 document.getElementById('input-date').value = data.examDate;
                 document.getElementById('input-assessments').value = data.rawAssessments;
                 document.getElementById('input-ranges').value = data.rawRanges;
             }
         });
 
-        // 자유 게시판 실시간 로딩
-        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20));
+        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(30));
         onSnapshot(q, (snap) => {
             const list = document.getElementById('post-list');
             list.innerHTML = "";
             snap.forEach(doc => {
                 const p = doc.data();
-                list.innerHTML += `<div class="bg-gray-50 p-4 rounded-xl"><div class="flex justify-between text-xs mb-1"><span class="font-bold text-indigo-600">${p.user}</span><span class="text-gray-400">${p.createdAt?.toDate().toLocaleString().slice(5, 16)}</span></div><p class="text-sm">${p.text}</p></div>`;
+                list.innerHTML += `<div class="bg-gray-50 p-4 rounded-xl border border-gray-100"><div class="flex justify-between text-xs mb-1"><span class="font-bold text-indigo-600">${p.user}</span><span class="text-gray-400">${p.createdAt?.toDate().toLocaleString().slice(5, 16)}</span></div><p class="text-sm text-gray-700">${linkify(p.text)}</p></div>`;
             });
         });
 
-        // 글쓰기 함수
         window.addPost = async () => {
             const text = document.getElementById('post-text').value;
-            if(!text) return;
-            await addDoc(collection(db, "posts"), { text, user: auth.currentUser.displayName, createdAt: new Date() });
-            document.getElementById('post-text').value = "";
+            if(!text.trim()) return;
+            try {
+                await addDoc(collection(db, "posts"), { text, user: auth.currentUser.displayName, createdAt: new Date() });
+                document.getElementById('post-text').value = "";
+            } catch(e) { alert("로그인이 필요합니다."); }
         };
 
-        // 로그인 감지
         onAuthStateChanged(auth, (user) => {
             const isAdmin = user && user.email === ADMIN_EMAIL;
             document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
             document.getElementById('post-input-section').classList.toggle('hidden', !user);
             document.getElementById('post-login-msg').classList.toggle('hidden', !!user);
-            document.getElementById('loginBtn').innerText = user ? "로그아웃" : "로그인";
+            document.getElementById('loginBtn').innerText = user ? "로그아웃" : "관리자 로그인";
             document.getElementById('loginBtn').onclick = () => user ? auth.signOut() : signInWithPopup(auth, provider);
         });
 
-        // 관리자 데이터 저장
         window.saveData = async () => {
-            await setDoc(dataDoc, {
-                examDate: document.getElementById('input-date').value,
-                rawAssessments: document.getElementById('input-assessments').value,
-                rawRanges: document.getElementById('input-ranges').value,
-                lastUpdated: new Date().toLocaleString(),
-                updatedBy: auth.currentUser.displayName
-            });
-            alert("업데이트 완료!");
+            if(!confirm("서버에 저장할까요?")) return;
+            try {
+                await setDoc(dataDoc, {
+                    examDate: document.getElementById('input-date').value,
+                    rawAssessments: document.getElementById('input-assessments').value,
+                    rawRanges: document.getElementById('input-ranges').value,
+                    lastUpdated: new Date().toLocaleString(),
+                    updatedBy: auth.currentUser.displayName
+                });
+                alert("저장 완료!");
+            } catch(e) { alert("권한이 없습니다."); }
         };
     </script>
 </body>
