@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// 1. 파이어베이스 설정
 const firebaseConfig = {
     apiKey: "AIzaSyDKbxqZBW6NovbiJAFJGyZIQZfYIxGvbN8",
     authDomain: "byhs1-4.firebaseapp.com",
@@ -19,61 +20,76 @@ const provider = new GoogleAuthProvider();
 const ADMIN_EMAIL = "kr.craft1016@gmail.com"; 
 const dataDoc = doc(db, "classData", "main");
 
+// [유틸리티] 링크 자동 변환
 const linkify = (text) => {
     if (!text) return "";
     const urlPattern = /(https?:\/\/[^\s]+)/g;
-    return text.replace(urlPattern, '<a href="$1" target="_blank" class="auto-link">$1</a>');
+    return text.replace(urlPattern, '<a href="$1" target="_blank" class="auto-link font-bold underline text-indigo-500">$1</a>');
 };
 
+// [탭 전환 로직]
 const switchTab = (tab) => {
     document.getElementById('content-exam').classList.toggle('hidden', tab !== 'exam');
     document.getElementById('content-board').classList.toggle('hidden', tab !== 'board');
-    document.getElementById('tab-exam').className = tab === 'exam' ? 'flex-1 py-4 font-bold tab-active transition-all' : 'flex-1 py-4 font-bold text-gray-400 transition-all';
-    document.getElementById('tab-board').className = tab === 'board' ? 'flex-1 py-4 font-bold tab-active transition-all' : 'flex-1 py-4 font-bold text-gray-400 transition-all';
+    document.getElementById('tab-exam').className = tab === 'exam' ? 'flex-1 py-4 font-bold tab-active' : 'flex-1 py-4 font-bold text-gray-400';
+    document.getElementById('tab-board').className = tab === 'board' ? 'flex-1 py-4 font-bold tab-active' : 'flex-1 py-4 font-bold text-gray-400';
 };
 document.getElementById('tab-exam').onclick = () => switchTab('exam');
 document.getElementById('tab-board').onclick = () => switchTab('board');
 
-// [급식 기능: JohnsonLib 연동]
+// [2. 급식 기능: 나이스 API 직접 호출]
 async function getMeal() {
     const mealEl = document.getElementById('meal-content');
+    if (!mealEl) return;
+
     try {
-        // 부여고 행정표준코드 8140052 사용
-        const meal = await MealRequest('high', '8140052');
-        
-        if (meal && meal.length > 0) {
-            const mealType = meal[0]; // 중식 등 시간대
-            const menu = meal.slice(1).join(", "); // 메뉴만 추출
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const today = `${yyyy}${mm}${dd}`;
+
+        // 인증키 및 학교 정보 (부여고: 8140052 / 충남: N10)
+        const key = "3366de199e3b43ccb46803dcdceb0a92";
+        const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${key}&Type=json&ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=8140052&MLSV_YMD=${today}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.mealServiceDietInfo) {
+            let menu = data.mealServiceDietInfo[1].row[0].DDISH_NM;
+            // 알레르기 번호 및 불필요 문자 제거 정규식
+            menu = menu.replace(/[0-9.]/g, "").replace(/\(\)/g, "").replace(/<br\/>/g, ", ");
             
             mealEl.innerHTML = `
-                <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 shadow-sm shadow-emerald-100/50">
-                    <p class="text-[10px] text-emerald-500 font-black mb-1 uppercase tracking-widest">${mealType}</p>
+                <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 shadow-sm">
                     <p class="text-emerald-800 font-bold text-base leading-relaxed break-keep">${menu}</p>
+                    <p class="text-[10px] text-emerald-400 mt-2 font-medium italic">오늘의 메뉴입니다. 맛있게 드세요! ✨</p>
                 </div>
             `;
         } else {
-            mealEl.innerHTML = `<div class="text-center py-4 text-gray-400 italic text-sm">🍱 오늘 등록된 식단이 없습니다.</div>`;
+            mealEl.innerHTML = `<div class="text-center py-4 text-gray-400 italic text-sm border-2 border-dashed border-gray-100 rounded-2xl">🍱 오늘 등록된 식단이 없습니다.</div>`;
         }
     } catch (e) {
         console.error(e);
-        mealEl.innerHTML = `<div class="text-center py-4 text-red-400 text-xs">⚠️ 급식 데이터를 불러오지 못했습니다.</div>`;
+        mealEl.innerHTML = `<div class="text-center py-4 text-red-400 text-xs font-bold">⚠️ 급식 서버 연결 실패</div>`;
     }
 }
 
-// [실시간 데이터 렌더링]
+// [3. 파이어베이스 실시간 데이터 수신]
 onSnapshot(dataDoc, (snap) => {
     if (snap.exists()) {
         const data = snap.data();
         
-        // 1. 중간고사 D-Day
+        // 시험 디데이
         const examDiff = new Date(data.examDate) - new Date();
         const examDays = Math.ceil(examDiff / (1000 * 60 * 60 * 24));
         document.getElementById('exam-dday').innerText = examDays > 0 ? `D-${examDays}` : (examDays === 0 ? "D-Day" : "종료");
 
-        // 2. 공지사항
+        // 공지사항
         document.getElementById('notice-content').innerHTML = linkify(data.notice || "공지가 없습니다.");
 
-        // 3. 부리미어 리그
+        // 부리미어 리그 디데이 계산
         const plRaw = data.plSchedule || "";
         const plEl = document.getElementById('pl-content');
         const timeRegex = /(\d{1,2})[./](\d{1,2})\s+(\d{1,2}):(\d{2})/;
@@ -88,13 +104,13 @@ onSnapshot(dataDoc, (snap) => {
                 const h = Math.floor((tDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const m = Math.floor((tDiff % (1000 * 60 * 60)) / (1000 * 60));
                 let ddayStr = d > 0 ? `D-${d} ${h}시간 전` : (h > 0 ? `${h}시간 ${m}분 전` : `${m}분 전`);
-                plEl.innerHTML = `<div class="mb-2 flex items-center gap-2"><span class="bg-cyan-400 text-slate-900 text-[9px] font-black px-2 py-0.5 rounded-full animate-blink uppercase">Coming</span><span class="text-cyan-400 text-xs font-bold">${ddayStr}</span></div><div class="text-lg font-bold text-white">${linkify(plRaw)}</div>`;
+                plEl.innerHTML = `<div class="mb-2 flex items-center gap-2"><span class="bg-cyan-400 text-slate-900 text-[9px] font-black px-2 py-0.5 rounded-full animate-blink uppercase">Coming</span><span class="text-cyan-400 text-xs font-bold">${ddayStr}</span></div><div class="text-lg font-bold text-white tracking-tight">${linkify(plRaw)}</div>`;
             } else {
                 plEl.innerHTML = `<div class="text-slate-500 font-bold text-xs italic">[진행중/종료]</div><div class="text-slate-400 text-sm mt-1">${linkify(plRaw)}</div>`;
             }
         } else { plEl.innerHTML = `<div class="text-slate-500 text-sm">${linkify(plRaw || "일정이 없습니다.")}</div>`; }
 
-        // 4. 수행평가 리스트 & D-Day
+        // 수행평가 리스트 및 상단 D-Day
         const listBody = document.getElementById('assessment-list');
         listBody.innerHTML = "";
         const rows = (data.rawAssessments || "").split('\n').filter(r => r.includes('|'));
@@ -112,17 +128,17 @@ onSnapshot(dataDoc, (snap) => {
             });
         }
 
-        // 5. 시험 범위 (폰트 크기 확대 적용)
+        // 시험 범위 렌더링
         const rangeCont = document.getElementById('range-cards');
         rangeCont.innerHTML = "";
         (data.rawRanges || "").split('\n').forEach(l => {
             if(l.includes(':')) {
                 const [t, d] = l.split(':');
-                rangeCont.innerHTML += `<div class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100/50 transition-colors hover:bg-white"><h3 class="font-bold text-indigo-700 text-xl mb-2 flex items-center gap-2"><span class="w-1 h-5 bg-indigo-400 rounded-full"></span>${t}</h3><p class="range-text">${linkify(d)}</p></div>`;
+                rangeCont.innerHTML += `<div class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100/50 hover:bg-white transition-colors"><h3 class="font-bold text-indigo-700 text-xl mb-2 flex items-center gap-2"><span class="w-1 h-5 bg-indigo-400 rounded-full"></span>${t}</h3><p class="text-lg font-medium text-slate-700 leading-relaxed">${linkify(d)}</p></div>`;
             }
         });
 
-        // 어드민 데이터 싱크
+        // 관리자 인풋 동기화
         document.getElementById('input-date').value = data.examDate || "";
         document.getElementById('input-assessments').value = data.rawAssessments || "";
         document.getElementById('input-ranges').value = data.rawRanges || "";
@@ -131,7 +147,7 @@ onSnapshot(dataDoc, (snap) => {
     }
 });
 
-// [게시판 및 로그인]
+// [4. 게시판 로직]
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(40));
 onSnapshot(q, (snap) => {
     const list = document.getElementById('post-list');
@@ -141,14 +157,14 @@ onSnapshot(q, (snap) => {
         const p = docSnap.data();
         const postId = docSnap.id;
         const postEl = document.createElement('div');
-        postEl.className = "card !p-5 bg-white/60 hover:bg-white border border-gray-100";
-        let delBtn = isAdmin ? `<button class="text-red-400 text-[10px] ml-2 font-bold" onclick="window.deletePost('${postId}')">삭제</button>` : "";
+        postEl.className = "card !p-5 bg-white/60 hover:bg-white transition-all border border-gray-100";
+        let delBtn = isAdmin ? `<button class="text-red-400 text-[10px] ml-2 font-bold hover:underline" onclick="window.deletePost('${postId}')">삭제</button>` : "";
         postEl.innerHTML = `<div class="flex justify-between text-[11px] mb-2 text-gray-400"><div><span class="font-black text-indigo-500 mr-1">${p.user}</span>${delBtn}</div><span>${p.createdAt?.toDate().toLocaleString().slice(5, 16)}</span></div><p class="text-[14px] text-slate-700 leading-relaxed font-medium">${linkify(p.text)}</p>`;
         list.appendChild(postEl);
     });
 });
 
-window.deletePost = async (id) => { if(confirm("삭제할까요?")) await deleteDoc(doc(db, "posts", id)); };
+window.deletePost = async (id) => { if(confirm("글을 삭제하시겠습니까?")) await deleteDoc(doc(db, "posts", id)); };
 
 document.getElementById('addPostBtn').onclick = async () => {
     const text = document.getElementById('post-text').value;
@@ -157,6 +173,7 @@ document.getElementById('addPostBtn').onclick = async () => {
     document.getElementById('post-text').value = "";
 };
 
+// [5. 인증 및 관리자 설정]
 onAuthStateChanged(auth, (user) => {
     const isAdmin = user && user.email === ADMIN_EMAIL;
     document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
@@ -167,8 +184,9 @@ onAuthStateChanged(auth, (user) => {
     loginBtn.onclick = () => user ? signOut(auth) : signInWithPopup(auth, provider);
 });
 
+// 관리자 데이터 저장 버튼
 document.getElementById('saveBtn').onclick = async () => {
-    if(!confirm("서버에 반영할까요?")) return;
+    if(!confirm("입력한 데이터를 서버에 저장할까요?")) return;
     await setDoc(dataDoc, {
         examDate: document.getElementById('input-date').value,
         rawAssessments: document.getElementById('input-assessments').value,
@@ -177,8 +195,8 @@ document.getElementById('saveBtn').onclick = async () => {
         plSchedule: document.getElementById('input-pl').value,
         lastUpdated: new Date().toLocaleString()
     });
-    alert("반영 완료!");
+    alert("서버 저장 완료!");
 };
 
-// **페이지 로드 시 급식 함수 실행**
+// [실행] 급식 함수 호출
 getMeal();
