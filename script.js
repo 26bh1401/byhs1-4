@@ -61,13 +61,17 @@ onSnapshot(dataDoc, (snap) => {
             });
         }
 
-        // 시험 범위
+        // 시험 범위 출력 부분
         const cardCont = document.getElementById('range-cards');
         cardCont.innerHTML = "";
         (data.rawRanges || "").split('\n').forEach(line => {
             if(line.includes(':')) {
                 const [t, d] = line.split(':');
-                cardCont.innerHTML += `<div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><h3 class="font-bold text-green-700 mb-1">${t}</h3><p class="text-xs text-gray-500">${linkify(d)}</p></div>`;
+                cardCont.innerHTML += `
+                    <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                        <h3 class="font-bold text-green-700 text-xl mb-2">${t}</h3>
+                        <p class="text-gray-600 text-lg leading-relaxed">${linkify(d)}</p>
+                    </div>`;
             }
         });
 
