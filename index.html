@@ -181,7 +181,7 @@
             document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
             document.getElementById('post-input-section').classList.toggle('hidden', !user);
             document.getElementById('post-login-msg').classList.toggle('hidden', !!user);
-            document.getElementById('loginBtn').innerText = user ? "로그아웃" : "관리자 로그인";
+            document.getElementById('loginBtn').innerText = user ? "로그아웃" : "로그인";
             document.getElementById('loginBtn').onclick = () => user ? auth.signOut() : signInWithPopup(auth, provider);
         });
 
