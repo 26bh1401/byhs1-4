@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BYHS 1-4 ALL-IN-ONE</title>
+    <script src="script/JohnsonLib.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -24,13 +25,12 @@
     <nav class="w-full bg-white/80 backdrop-blur-md flex border-b sticky top-0 z-20 shadow-sm">
         <div class="max-w-4xl mx-auto w-full flex">
             <button id="tab-exam" class="flex-1 py-4 font-bold tab-active transition-all">🗓️ 학업 일정</button>
-            <button id="tab-board" class="flex-1 py-4 font-bold text-gray-400 transition-all">💬 자유 게시판</button>
+            <button id="tab-board" class="flex-1 py-4 font-bold text-gray-400 transition-all">💬 게시판</button>
         </div>
     </nav>
 
     <main class="max-w-4xl mx-auto p-4 mt-2">
         <div id="content-exam">
-            
             <section class="grid grid-cols-2 gap-3 mb-4">
                 <div class="card !mb-0 flex flex-col justify-center items-center py-6 border-b-4 border-indigo-500">
                     <p class="text-xs text-gray-400 font-bold mb-1">중간고사</p>
@@ -38,7 +38,7 @@
                 </div>
                 <div class="card !mb-0 flex flex-col justify-center items-center py-6 border-b-4 border-red-500">
                     <p class="text-xs text-gray-400 font-bold mb-1">🔥 가장 빠른 수행</p>
-                    <div id="nearest-assessment" class="flex flex-col items-center text-center">
+                    <div id="nearest-assessment" class="flex flex-col items-center">
                         <p class="text-red-600 font-black text-2xl">--</p>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                     <i class="fas fa-utensils text-emerald-500"></i> 오늘의 급식
                 </h2>
                 <div id="meal-content" class="mt-3">
-                    <p class="text-sm text-gray-400 animate-pulse">식단을 불러오는 중...</p>
+                    <p class="text-sm text-gray-400 animate-pulse text-center py-4 font-bold italic">식단을 불러오는 중...</p>
                 </div>
             </section>
 
@@ -84,31 +84,29 @@
 
         <div id="content-board" class="hidden">
             <section class="card">
-                <h2 class="title mb-4">💬 우리들의 공간</h2>
+                <h2 class="title mb-4">💬 게시판</h2>
                 <div id="post-input-section" class="hidden mb-6">
-                    <textarea id="post-text" class="input" rows="3" placeholder="서로를 배려하는 따뜻한 한마디를 남겨주세요."></textarea>
+                    <textarea id="post-text" class="input" rows="3" placeholder="내용을 입력하세요."></textarea>
                     <button id="addPostBtn" class="btn-primary mt-3 shadow-lg font-bold">글 남기기</button>
                 </div>
-                <div id="post-login-msg" class="text-center py-10 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl mb-6">로그인이 필요한 서비스입니다.</div>
+                <div id="post-login-msg" class="text-center py-10 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl mb-6">로그인이 필요합니다.</div>
                 <div id="post-list" class="space-y-4"></div>
             </section>
         </div>
 
-        <section id="admin-panel" class="hidden mt-10 p-8 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl border border-white/10">
-            <h2 class="text-xl font-bold mb-6 text-cyan-400 flex items-center gap-2">
-                <i class="fas fa-user-shield"></i> Admin Dashboard
-            </h2>
+        <section id="admin-panel" class="hidden mt-10 p-8 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 text-cyan-400 italic italic">Admin Dashboard</h2>
             <div class="space-y-4 text-sm">
                 <div><label class="label">시험 날짜</label><input type="date" id="input-date" class="admin-input"></div>
                 <div><label class="label">수행평가 (과목|내용|MM.DD)</label><textarea id="input-assessments" class="admin-input h-24"></textarea></div>
                 <div><label class="label">시험 범위 (과목:내용)</label><textarea id="input-ranges" class="admin-input h-24"></textarea></div>
                 <div><label class="label">공지사항</label><textarea id="input-notice" class="admin-input h-24"></textarea></div>
                 <div><label class="label">부리미어 일정</label><textarea id="input-pl" class="admin-input h-24"></textarea></div>
-                <button id="saveBtn" class="w-full bg-cyan-500 text-slate-900 font-black py-4 rounded-2xl hover:bg-cyan-400 transition-all active:scale-95 shadow-xl shadow-cyan-500/20 mt-4 uppercase">Server Update</button>
+                <button id="saveBtn" class="w-full bg-cyan-500 text-slate-900 font-black py-4 rounded-2xl mt-4 uppercase">Update Server</button>
             </div>
         </section>
     </main>
 
-    <script type="module" src="script.js?v=5"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
