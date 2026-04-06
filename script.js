@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 파이어베이스 설정
 const firebaseConfig = {
     apiKey: "AIzaSyDKbxqZBW6NovbiJAFJGyZIQZfYIxGvbN8",
     authDomain: "byhs1-4.firebaseapp.com",
@@ -20,14 +19,12 @@ const provider = new GoogleAuthProvider();
 const ADMIN_EMAIL = "kr.craft1016@gmail.com"; 
 const dataDoc = doc(db, "classData", "main");
 
-// 링크 자동 변환 함수
 const linkify = (text) => {
     if (!text) return "";
     const urlPattern = /(https?:\/\/[^\s]+)/g;
     return text.replace(urlPattern, '<a href="$1" target="_blank" class="auto-link">$1</a>');
 };
 
-// 탭 전환 기능
 const switchTab = (tab) => {
     document.getElementById('content-exam').classList.toggle('hidden', tab !== 'exam');
     document.getElementById('content-board').classList.toggle('hidden', tab !== 'board');
@@ -37,12 +34,12 @@ const switchTab = (tab) => {
 document.getElementById('tab-exam').onclick = () => switchTab('exam');
 document.getElementById('tab-board').onclick = () => switchTab('board');
 
-// [메인 데이터 업데이트 및 디데이 계산]
+// 데이터 실시간 감시 및 디데이 계산
 onSnapshot(dataDoc, (snap) => {
     if (snap.exists()) {
         const data = snap.data();
         
-        // 1. 중간고사 D-Day
+        // 1. 시험 D-Day
         const examDiff = new Date(data.examDate) - new Date();
         const examDays = Math.ceil(examDiff / (1000 * 60 * 60 * 24));
         document.getElementById('exam-dday').innerText = examDays > 0 ? `D-${examDays}` : (examDays === 0 ? "D-Day" : "종료");
@@ -50,10 +47,10 @@ onSnapshot(dataDoc, (snap) => {
         // 2. 공지사항
         document.getElementById('notice-content').innerHTML = linkify(data.notice || "공지가 없습니다.");
 
-        // 3. ★ 부리미어 리그 디데이 로직 (수정됨) ★
+        // 3. 부리미어 리그 디데이 (강력한 정규표현식 적용)
         const plRaw = data.plSchedule || "";
         const plEl = document.getElementById('pl-content');
-        // 날짜 형식 인식: 04.20 12:30 또는 (04.20 12:30) 등
+        // 숫자.숫자 공백 숫자:숫자 형태를 무조건 찾아냄
         const timeRegex = /(\d{1,2})[./](\d{1,2})\s+(\d{1,2}):(\d{2})/;
         const plMatch = plRaw.match(timeRegex);
 
@@ -76,19 +73,20 @@ onSnapshot(dataDoc, (snap) => {
             plEl.innerHTML = linkify(plRaw || "일정이 없습니다.");
         }
 
-        // 4. 수행평가 리스트
+        // 4. 수행평가
         const listBody = document.getElementById('assessment-list');
         listBody.innerHTML = "";
         const rows = (data.rawAssessments || "").split('\n').filter(r => r.includes('|'));
         if(rows.length > 0) {
-            document.getElementById('nearest-assessment').innerHTML = `${rows[0].split('|')[0]} - ${linkify(rows[0].split('|')[1])}`;
+            const firstRow = rows[0].split('|');
+            document.getElementById('nearest-assessment').innerHTML = `${firstRow[0]} - ${linkify(firstRow[1])}`;
             rows.forEach(r => {
                 const [s, c, d] = r.split('|');
                 listBody.innerHTML += `<tr><td class="p-4 font-bold text-indigo-600">${s}</td><td class="p-4">${linkify(c)}</td><td class="p-4 text-blue-500 font-bold">${d}</td></tr>`;
             });
         }
 
-        // 5. 시험 범위 (폰트 크게)
+        // 5. 시험 범위
         const rangeCont = document.getElementById('range-cards');
         rangeCont.innerHTML = "";
         (data.rawRanges || "").split('\n').forEach(l => {
@@ -98,7 +96,7 @@ onSnapshot(dataDoc, (snap) => {
             }
         });
 
-        // 6. 관리자 입력창 동기화
+        // 관리자 인풋 동기화
         document.getElementById('input-date').value = data.examDate || "";
         document.getElementById('input-assessments').value = data.rawAssessments || "";
         document.getElementById('input-ranges').value = data.rawRanges || "";
@@ -107,7 +105,7 @@ onSnapshot(dataDoc, (snap) => {
     }
 });
 
-// [자유 게시판 로직]
+// 게시판 실시간 연동
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(40));
 onSnapshot(q, (snap) => {
     const list = document.getElementById('post-list');
@@ -117,15 +115,15 @@ onSnapshot(q, (snap) => {
         const p = docSnap.data();
         const postId = docSnap.id;
         const postEl = document.createElement('div');
-        postEl.className = "post-card bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm";
-        let delBtn = isAdmin ? `<button class="delete-btn" onclick="window.deletePost('${postId}')">삭제</button>` : "";
+        postEl.className = "bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm";
+        let delBtn = isAdmin ? `<button class="delete-btn text-red-500 text-xs ml-2 font-bold" onclick="window.deletePost('${postId}')">삭제</button>` : "";
         postEl.innerHTML = `<div class="flex justify-between text-xs mb-1"><div><span class="font-bold text-indigo-600">${p.user}</span>${delBtn}</div><span class="text-gray-400">${p.createdAt?.toDate().toLocaleString().slice(5, 16)}</span></div><p class="text-sm text-gray-700">${linkify(p.text)}</p>`;
         list.appendChild(postEl);
     });
 });
 
 window.deletePost = async (id) => {
-    if(confirm("정말 삭제하시겠습니까?")) await deleteDoc(doc(db, "posts", id));
+    if(confirm("삭제하시겠습니까?")) await deleteDoc(doc(db, "posts", id));
 };
 
 document.getElementById('addPostBtn').onclick = async () => {
@@ -135,7 +133,6 @@ document.getElementById('addPostBtn').onclick = async () => {
     document.getElementById('post-text').value = "";
 };
 
-// [인증 및 관리자 권한 제어]
 onAuthStateChanged(auth, (user) => {
     const isAdmin = user && user.email === ADMIN_EMAIL;
     document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
@@ -146,20 +143,15 @@ onAuthStateChanged(auth, (user) => {
     loginBtn.onclick = () => user ? signOut(auth) : signInWithPopup(auth, provider);
 });
 
-// [데이터 저장 로직]
 document.getElementById('saveBtn').onclick = async () => {
-    if(!confirm("서버에 저장할까요?")) return;
-    try {
-        await setDoc(dataDoc, {
-            examDate: document.getElementById('input-date').value,
-            rawAssessments: document.getElementById('input-assessments').value,
-            rawRanges: document.getElementById('input-ranges').value,
-            notice: document.getElementById('input-notice').value,
-            plSchedule: document.getElementById('input-pl').value,
-            lastUpdated: new Date().toLocaleString()
-        });
-        alert("성공적으로 저장되었습니다!");
-    } catch(e) {
-        alert("저장에 실패했습니다. 권한을 확인하세요.");
-    }
+    if(!confirm("저장할까요?")) return;
+    await setDoc(dataDoc, {
+        examDate: document.getElementById('input-date').value,
+        rawAssessments: document.getElementById('input-assessments').value,
+        rawRanges: document.getElementById('input-ranges').value,
+        notice: document.getElementById('input-notice').value,
+        plSchedule: document.getElementById('input-pl').value,
+        lastUpdated: new Date().toLocaleString()
+    });
+    alert("저장 완료!");
 };
