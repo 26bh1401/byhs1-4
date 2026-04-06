@@ -21,77 +21,62 @@ const dataDoc = doc(db, "classData", "main");
 let mealStore = { 1: "정보 없음", 2: "정보 없음", 3: "정보 없음" };
 const linkify = (t) => t ? t.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-indigo-500 font-bold underline">$1</a>') : "";
 
-// --- [A] 로그인/로그아웃 핵심 로직 ---
+// --- [A] 로그인/로그아웃 로직 ---
 const loginBtn = document.getElementById('loginBtn');
-
-const handleAuth = async () => {
-    if (auth.currentUser) {
-        if (confirm("로그아웃 하시겠습니까?")) await signOut(auth);
-    } else {
-        try {
-            await signInWithPopup(auth, provider);
-        } catch (e) {
-            alert("로그인 실패: " + e.message);
+if (loginBtn) {
+    loginBtn.onclick = async () => {
+        if (auth.currentUser) {
+            if (confirm("로그아웃 하시겠습니까?")) await signOut(auth);
+        } else {
+            try { await signInWithPopup(auth, provider); } 
+            catch (e) { alert("로그인 실패: " + e.message); }
         }
-    }
-};
+    };
+}
 
-// 버튼에 이벤트 직접 연결 (페이지 로드 즉시)
-if (loginBtn) loginBtn.onclick = handleAuth;
-
-// 인증 상태 감시 및 UI 업데이트
 onAuthStateChanged(auth, async (user) => {
     const adminPanel = document.getElementById('admin-panel');
     const postInput = document.getElementById('post-input-section');
     const postMsg = document.getElementById('post-login-msg');
-
     if (user) {
         loginBtn.innerText = "LOGOUT";
         if (postInput) postInput.classList.remove('hidden');
         if (postMsg) postMsg.classList.add('hidden');
-
         if (user.email === ADMIN_EMAIL) {
             adminPanel.classList.remove('hidden');
-            await refreshAdminInputs();
+            const snap = await getDoc(dataDoc);
+            if (snap.exists()) {
+                const d = snap.data();
+                document.getElementById('input-date').value = d.examDate || "";
+                document.getElementById('input-assessments').value = d.rawAssessments || "";
+                document.getElementById('input-ranges').value = d.rawRanges || "";
+                document.getElementById('input-notice').value = d.notice || "";
+                document.getElementById('input-pl').value = d.plSchedule || "";
+            }
         }
     } else {
         loginBtn.innerText = "ADMIN";
-        adminPanel.classList.add('hidden');
+        if (adminPanel) adminPanel.classList.add('hidden');
         if (postInput) postInput.classList.add('hidden');
         if (postMsg) postMsg.classList.remove('hidden');
     }
 });
 
-async function refreshAdminInputs() {
-    const snap = await getDoc(dataDoc);
-    if (snap.exists()) {
-        const d = snap.data();
-        const mapping = {
-            'input-date': d.examDate, 'input-assessments': d.rawAssessments,
-            'input-ranges': d.rawRanges, 'input-notice': d.notice, 'input-pl': d.plSchedule
-        };
-        for (const [id, val] of Object.entries(mapping)) {
-            const el = document.getElementById(id);
-            if (el) el.value = val || "";
-        }
-    }
-}
-
 // --- [B] 가장 빠른 수행평가 계산 ---
 function getNearest(raw) {
     const lines = raw.split('\n').filter(l => l.includes('|'));
     if (lines.length === 0) return "--";
-    
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
     let minDiff = Infinity;
     let nearestSubj = "";
-
     lines.forEach(line => {
         const [subj, , dateStr] = line.split('|');
         const [m, d] = dateStr.split('.').map(Number);
         const target = new Date(now.getFullYear(), m - 1, d);
+        target.setHours(0, 0, 0, 0);
         const diff = target - now;
-        if (diff > -86400000 && diff < minDiff) {
+        if (diff >= 0 && diff < minDiff) {
             minDiff = diff;
             nearestSubj = subj;
         }
@@ -100,18 +85,22 @@ function getNearest(raw) {
     return nearestSubj ? `<p class="text-red-600 font-black text-2xl">D-${dday}</p><p class="text-gray-700 text-[10px] font-bold mt-1">${nearestSubj}</p>` : "--";
 }
 
-// --- [C] 실시간 데이터 렌더링 ---
+// --- [C] 실시간 데이터 렌더링 (디데이 수정됨) ---
 onSnapshot(dataDoc, (snap) => {
     if (!snap.exists()) return;
     const data = snap.data();
 
-    // D-Day & 수행
-    const diff = new Date(data.examDate) - new Date();
-    document.getElementById('exam-dday').innerText = diff > 0 ? `D-${Math.ceil(diff/(1000*60*60*24))}` : "종료";
+    // 시험 D-Day 칼계산
+    if (data.examDate) {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const target = new Date(data.examDate); target.setHours(0,0,0,0);
+        const diff = Math.round((target - today) / (1000 * 60 * 60 * 24));
+        document.getElementById('exam-dday').innerText = diff > 0 ? `D-${diff}` : (diff === 0 ? "D-Day🔥" : "종료");
+    }
+
     document.getElementById('nearest-assessment').innerHTML = getNearest(data.rawAssessments || "");
     document.getElementById('notice-content').innerHTML = linkify(data.notice);
 
-    // 리스트 & 카드
     const list = document.getElementById('assessment-list');
     list.innerHTML = "";
     (data.rawAssessments || "").split('\n').filter(r => r.includes('|')).forEach(r => {
@@ -126,7 +115,6 @@ onSnapshot(dataDoc, (snap) => {
         rCont.innerHTML += `<div class="bg-white p-6 rounded-2xl border border-indigo-50 animate-fadeIn"><h3 class="font-bold text-indigo-700 text-lg mb-2">${t}</h3><p class="text-slate-600 text-sm">${linkify(d)}</p></div>`;
     });
 
-    // PL 리그
     const plEl = document.getElementById('pl-main-content');
     const plRaw = data.plSchedule || "";
     const plMatch = plRaw.match(/(\d{1,2})[./](\d{1,2})\s+(\d{1,2}):(\d{2})/);
@@ -145,7 +133,6 @@ onSnapshot(dataDoc, (snap) => {
 // --- [D] 게시판 시스템 ---
 const addPostBtn = document.getElementById('addPostBtn');
 const postText = document.getElementById('post-text');
-
 onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20)), (snap) => {
     const postList = document.getElementById('post-list');
     postList.innerHTML = "";
@@ -158,20 +145,14 @@ onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20
         postList.appendChild(div);
     });
 });
-
 window.deletePost = async (id) => { if(confirm("삭제?")) await deleteDoc(doc(db, "posts", id)); };
-
 addPostBtn.onclick = async () => {
     if (!postText.value.trim()) return;
-    await addDoc(collection(db, "posts"), {
-        user: auth.currentUser.displayName || "익명",
-        text: postText.value,
-        createdAt: serverTimestamp()
-    });
+    await addDoc(collection(db, "posts"), { user: auth.currentUser.displayName || "익명", text: postText.value, createdAt: serverTimestamp() });
     postText.value = "";
 };
 
-// --- [E] 나머지 (급식, 탭, 저장) ---
+// --- [E] 급식 및 탭 (날짜 수정됨) ---
 const switchTab = (id) => {
     ['exam', 'pl', 'meal', 'board'].forEach(t => {
         document.getElementById(`content-${t}`).classList.add('hidden');
@@ -184,17 +165,18 @@ const switchTab = (id) => {
 ['exam', 'pl', 'meal', 'board'].forEach(t => document.getElementById(`tab-${t}`).onclick = () => switchTab(t));
 
 async function getMeal() {
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const now = new Date();
+    const today = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
     const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=3366de199e3b43ccb46803dcdceb0a92&Type=json&ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=8140052&MLSV_YMD=${today}`;
     try {
         const resArr = await Promise.all([1,2,3].map(c => fetch(`${url}&MMEAL_SC_CODE=${c}`).then(r => r.json())));
         resArr.forEach((d, i) => {
-            mealStore[i+1] = d.mealServiceDietInfo ? d.mealServiceDietInfo[1].row[0].DDISH_NM.replace(/[0-9.]/g, "").replace(/\(\)/g, "").replace(/<br\/>/g, ", ") : "정보 없음";
+            mealStore[i+1] = d.mealServiceDietInfo ? d.mealServiceDietInfo[1].row[0].DDISH_NM.replace(/[0-9.]/g, "").replace(/\(\)/g, "").replace(/<br\/>/g, ", ") : "급식 정보가 없습니다.";
         });
-        showMeal(2);
+        const hm = now.getHours() * 100 + now.getMinutes();
+        showMeal(hm < 830 ? 1 : (hm < 1330 ? 2 : 3));
     } catch (e) { console.error(e); }
 }
-
 function showMeal(type) {
     const container = document.getElementById('meal-display-container');
     const cfg = { 1: ['orange', '아침'], 2: ['emerald', '점심'], 3: ['indigo', '저녁'] }[type];
