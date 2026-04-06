@@ -19,66 +19,75 @@ const provider = new GoogleAuthProvider();
 const ADMIN_EMAIL = "kr.craft1016@gmail.com"; 
 const dataDoc = doc(db, "classData", "main");
 
-// 링크 변환기
 const linkify = (text) => {
     if (!text) return "";
     const urlPattern = /(https?:\/\/[^\s]+)/g;
     return text.replace(urlPattern, '<a href="$1" target="_blank" class="auto-link">$1</a>');
 };
 
-// 탭 전환
 const switchTab = (tab) => {
     document.getElementById('content-exam').classList.toggle('hidden', tab !== 'exam');
     document.getElementById('content-board').classList.toggle('hidden', tab !== 'board');
     document.getElementById('tab-exam').className = tab === 'exam' ? 'flex-1 py-4 text-center tab-active' : 'flex-1 py-4 text-center text-gray-500';
     document.getElementById('tab-board').className = tab === 'board' ? 'flex-1 py-4 text-center tab-active' : 'flex-1 py-4 text-center text-gray-500';
 };
-
 document.getElementById('tab-exam').onclick = () => switchTab('exam');
 document.getElementById('tab-board').onclick = () => switchTab('board');
 
-// 메인 데이터 감시
+// 메인 데이터 (D-Day, 공지, 부리미어, 수행, 범위)
 onSnapshot(dataDoc, (snap) => {
     if (snap.exists()) {
         const data = snap.data();
         
-        // D-Day 계산
+        // 시험 디데이
         const diff = new Date(data.examDate) - new Date();
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
         document.getElementById('exam-dday').innerText = days > 0 ? `D-${days}` : (days === 0 ? "D-Day" : "종료");
 
-        // 공지 및 PL 일정 출력
-        document.getElementById('notice-content').innerHTML = linkify(data.notice || "현재 공지가 없습니다.");
-        document.getElementById('pl-content').innerHTML = linkify(data.plSchedule || "다음 경기 일정이 없습니다.");
+        // 공지사항
+        document.getElementById('notice-content').innerHTML = linkify(data.notice || "공지가 없습니다.");
 
-        // 수행평가 출력
+        // 부리미어 리그 카운트다운
+        const plRaw = data.plSchedule || "";
+        const plEl = document.getElementById('pl-content');
+        const timeRegex = /(\d{2})\.(\d{2})\s+(\d{2}):(\d{2})/;
+        const match = plRaw.match(timeRegex);
+        if (match) {
+            const [_, mon, day, hr, min] = match;
+            const gameDate = new Date(new Date().getFullYear(), mon - 1, day, hr, min);
+            const tDiff = gameDate - new Date();
+            if (tDiff > 0) {
+                const d = Math.floor(tDiff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((tDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((tDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const ddayStr = d > 0 ? `D-${d} ${h}시간 전` : `${h}시간 ${m}분 전`;
+                plEl.innerHTML = `<div class="mb-1"><span class="bg-cyan-100 text-cyan-700 text-xs font-bold px-2 py-0.5 rounded">${ddayStr}</span></div><div class="text-base font-medium">${linkify(plRaw)}</div>`;
+            } else { plEl.innerHTML = linkify(plRaw); }
+        } else { plEl.innerHTML = linkify(plRaw || "일정이 없습니다."); }
+
+        // 수행평가 테이블
         const listBody = document.getElementById('assessment-list');
         listBody.innerHTML = "";
         const rows = (data.rawAssessments || "").split('\n').filter(r => r.includes('|'));
         if(rows.length > 0) {
-            const firstRow = rows[0].split('|');
-            document.getElementById('nearest-assessment').innerHTML = `${firstRow[0]} - ${linkify(firstRow[1])} (${firstRow[2]})`;
-            rows.forEach(row => {
-                const [sub, con, dat] = row.split('|');
-                listBody.innerHTML += `<tr><td class="p-4 font-bold text-indigo-600">${sub}</td><td class="p-4">${linkify(con)}</td><td class="p-4 text-xs font-bold text-blue-500">${dat}</td></tr>`;
+            document.getElementById('nearest-assessment').innerHTML = `${rows[0].split('|')[0]} - ${linkify(rows[0].split('|')[1])}`;
+            rows.forEach(r => {
+                const [s, c, d] = r.split('|');
+                listBody.innerHTML += `<tr><td class="p-4 font-bold text-indigo-600">${s}</td><td class="p-4">${linkify(c)}</td><td class="p-4 text-blue-500 font-bold">${d}</td></tr>`;
             });
         }
 
-        // 시험 범위 출력 (폰트 확대 버전)
-        const cardCont = document.getElementById('range-cards');
-        cardCont.innerHTML = "";
-        (data.rawRanges || "").split('\n').forEach(line => {
-            if(line.includes(':')) {
-                const [t, d] = line.split(':');
-                cardCont.innerHTML += `
-                    <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-                        <h3 class="font-bold text-green-700 text-xl mb-2">${t}</h3>
-                        <p class="text-gray-600 text-lg leading-relaxed">${linkify(d)}</p>
-                    </div>`;
+        // 시험 범위 (폰트 확대)
+        const rangeCont = document.getElementById('range-cards');
+        rangeCont.innerHTML = "";
+        (data.rawRanges || "").split('\n').forEach(l => {
+            if(l.includes(':')) {
+                const [t, d] = l.split(':');
+                rangeCont.innerHTML += `<div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm"><h3 class="font-bold text-green-700 text-xl mb-1">${t}</h3><p class="text-gray-600 text-lg">${linkify(d)}</p></div>`;
             }
         });
 
-        // 관리자 인풋 동기화
+        // 인풋값 세팅
         document.getElementById('input-date').value = data.examDate || "";
         document.getElementById('input-assessments').value = data.rawAssessments || "";
         document.getElementById('input-ranges').value = data.rawRanges || "";
@@ -87,42 +96,35 @@ onSnapshot(dataDoc, (snap) => {
     }
 });
 
-// 게시판 실시간 감시
+// 게시판 로직
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(40));
 onSnapshot(q, (snap) => {
     const list = document.getElementById('post-list');
     list.innerHTML = "";
     const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
-
     snap.forEach(docSnap => {
         const p = docSnap.data();
         const postId = docSnap.id;
         const postEl = document.createElement('div');
-        postEl.className = "bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm";
-        let delBtn = isAdmin ? `<button class="delete-btn" data-id="${postId}">삭제</button>` : "";
-        postEl.innerHTML = `
-            <div class="flex justify-between text-xs mb-1">
-                <div><span class="font-bold text-indigo-600">${p.user}</span>${delBtn}</div>
-                <span class="text-gray-400">${p.createdAt?.toDate().toLocaleString().slice(5, 16)}</span>
-            </div>
-            <p class="text-sm text-gray-700">${linkify(p.text)}</p>`;
-        if(isAdmin) postEl.querySelector('.delete-btn').onclick = () => deletePost(postId);
+        postEl.className = "post-card";
+        let delBtn = isAdmin ? `<button class="delete-btn" onclick="deletePost('${postId}')">삭제</button>` : "";
+        postEl.innerHTML = `<div class="flex justify-between text-xs mb-1"><div><span class="font-bold text-indigo-600">${p.user}</span>${delBtn}</div><span class="text-gray-400">${p.createdAt?.toDate().toLocaleString().slice(5, 16)}</span></div><p class="text-sm text-gray-700">${linkify(p.text)}</p>`;
         list.appendChild(postEl);
     });
 });
 
-const deletePost = async (id) => {
-    if(confirm("정말 삭제할까요?")) await deleteDoc(doc(db, "posts", id));
+window.deletePost = async (id) => {
+    if(confirm("삭제할까요?")) await deleteDoc(doc(db, "posts", id));
 };
 
 document.getElementById('addPostBtn').onclick = async () => {
     const text = document.getElementById('post-text').value;
-    if(!text.trim()) return;
+    if(!text.trim() || !auth.currentUser) return;
     await addDoc(collection(db, "posts"), { text, user: auth.currentUser.displayName, createdAt: new Date() });
     document.getElementById('post-text').value = "";
 };
 
-// 로그인 상태 감지
+// 로그인/로그아웃 및 관리자 권한
 onAuthStateChanged(auth, (user) => {
     const isAdmin = user && user.email === ADMIN_EMAIL;
     document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
@@ -133,18 +135,16 @@ onAuthStateChanged(auth, (user) => {
     loginBtn.onclick = () => user ? signOut(auth) : signInWithPopup(auth, provider);
 });
 
-// 관리자 데이터 저장
+// 저장 버튼
 document.getElementById('saveBtn').onclick = async () => {
-    if(!confirm("서버에 저장할까요?")) return;
-    try {
-        await setDoc(dataDoc, {
-            examDate: document.getElementById('input-date').value,
-            rawAssessments: document.getElementById('input-assessments').value,
-            rawRanges: document.getElementById('input-ranges').value,
-            notice: document.getElementById('input-notice').value,
-            plSchedule: document.getElementById('input-pl').value,
-            lastUpdated: new Date().toLocaleString()
-        });
-        alert("성공적으로 저장되었습니다!");
-    } catch(e) { alert("권한이 없습니다."); }
+    if(!confirm("저장할까요?")) return;
+    await setDoc(dataDoc, {
+        examDate: document.getElementById('input-date').value,
+        rawAssessments: document.getElementById('input-assessments').value,
+        rawRanges: document.getElementById('input-ranges').value,
+        notice: document.getElementById('input-notice').value,
+        plSchedule: document.getElementById('input-pl').value,
+        lastUpdated: new Date().toLocaleString()
+    });
+    alert("저장 완료!");
 };
