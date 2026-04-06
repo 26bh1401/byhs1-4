@@ -1,4 +1,4 @@
-/* 폰트 및 배경 설정 */
+/* 기본 설정 */
 body {
     font-family: 'Pretendard', sans-serif;
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -10,7 +10,6 @@ header {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
 }
 
-/* 카드 디자인 (호버 효과 강화) */
 .card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
@@ -27,7 +26,6 @@ header {
     box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.08);
 }
 
-/* 제목 폰트 */
 .title {
     font-weight: 800;
     font-size: 1.1rem;
@@ -45,67 +43,45 @@ header {
     border: 2px solid #f1f5f9;
     background: #f8fafc;
     outline: none;
-    transition: 0.2s;
 }
 
 .input:focus {
     border-color: #6366f1;
     background: white;
-    box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.1);
 }
 
 .btn-primary {
     width: 100%;
     background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
     color: white;
-    font-weight: 800;
     padding: 1.1rem;
     border-radius: 1.2rem;
-    transition: 0.2s;
 }
 
-/* 탭 스타일 */
+/* 탭 활성화 */
 .tab-active {
     color: #4f46e5;
     border-bottom: 4px solid #4f46e5;
-    background: rgba(79, 70, 229, 0.03);
 }
 
-/* 관리자 입력창 레이블 */
-.label {
-    display: block;
-    margin-bottom: 0.4rem;
-    font-weight: 600;
-    font-size: 0.75rem;
-    color: #94a3b8;
-    text-transform: uppercase;
+/* 급식 메뉴 자동 줄바꿈 */
+#meal-content p {
+    word-break: keep-all;
 }
 
-.admin-input {
-    width: 100%;
-    background: #1e293b;
-    border: 1px solid #334155;
-    padding: 1rem;
-    border-radius: 1rem;
-    color: white;
-    outline: none;
-    transition: border-color 0.2s;
+/* 시험범위 내용 강조 */
+.range-text {
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1.6;
+    color: #334155;
 }
 
-.admin-input:focus { border-color: #06b6d4; }
-
-/* 유틸리티 */
-.auto-link { color: #6366f1; text-decoration: underline; font-weight: 600; }
+/* 관리자 레이아웃 */
+.label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; }
+.admin-input { width: 100%; background: #1e293b; border: 1px solid #334155; padding: 1rem; border-radius: 1rem; color: white; outline: none; }
 .hidden { display: none !important; }
 
 /* 애니메이션 */
 @keyframes blink { 50% { opacity: 0.5; } }
 .animate-blink { animation: blink 1.5s infinite; }
-
-/* 시험범위 내용 강조 스타일 */
-.range-text {
-    font-size: 1.125rem; /* 18px */
-    font-weight: 500;
-    line-height: 1.6;
-    color: #334155;
-}
