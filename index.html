@@ -3,99 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BYHS1-4</title>
+    <title>BYHS 1-4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body>
 
-    <header class="bg-slate-800 text-white py-6 px-6 shadow-lg relative">
-    <div class="max-w-4xl mx-auto"> <h1 class="text-2xl font-bold">BYHS 1-4</h1>
-            <button id="loginBtn" class="absolute top-4 right-4 text-xs opacity-60 hover:opacity-100 border border-white px-2 py-1 rounded transition">로그인</button>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="header-brand">
+                <span class="brand-badge">Class</span>
+                <h1 class="brand-title">1<span class="brand-dash">—</span>4</h1>
+                <span class="brand-school">부여고등학교</span>
+            </div>
+            <button id="loginBtn" class="login-btn">
+                <i class="fas fa-user-circle"></i>
+                <span>관리자 로그인</span>
+            </button>
         </div>
     </header>
 
-    <nav class="bg-white shadow-sm sticky top-0 z-20">
-        <div class="max-w-4xl mx-auto flex">
-            <button id="tab-exam" class="flex-1 py-4 text-center tab-active transition">🗓️ 시험 & 수행</button>
-            <button id="tab-board" class="flex-1 py-4 text-center text-gray-500 transition">💬 자유 게시판</button>
+    <!-- Nav -->
+    <nav class="site-nav">
+        <div class="nav-inner">
+            <button id="tab-exam" class="nav-tab tab-active">
+                <i class="fas fa-calendar-alt"></i>
+                시험 &amp; 수행
+            </button>
+            <button id="tab-board" class="nav-tab">
+                <i class="fas fa-comments"></i>
+                자유 게시판
+            </button>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 mt-4">
+    <main class="site-main">
+
+        <!-- ───── 시험 & 수행 탭 ───── -->
         <div id="content-exam">
-            <section class="bg-white rounded-2xl shadow-md p-6 mb-6 border-l-8 border-indigo-500">
-                <h2 class="text-lg font-bold mb-4 text-gray-700">📌 주요 알림</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-indigo-50 p-4 rounded-xl">
-                        <p class="text-xs text-indigo-400 font-bold mb-1">중간고사 D-Day</p>
-                        <p id="exam-dday" class="text-2xl font-black text-indigo-600">계산 중...</p>
+
+            <!-- 상단 알림 배너 -->
+            <section class="alert-banner">
+                <div class="alert-grid">
+                    <div class="alert-card alert-dday">
+                        <span class="alert-label">중간고사</span>
+                        <p id="exam-dday" class="alert-value">계산 중…</p>
                     </div>
-                    <div class="bg-red-50 p-4 rounded-xl md:col-span-2">
-                        <p class="text-xs text-red-400 font-bold mb-1">🔥 가장 가까운 수행평가</p>
-                        <p id="nearest-assessment" class="text-lg font-bold text-red-600 italic">로딩 중...</p>
+                    <div class="alert-card alert-urgent">
+                        <span class="alert-label"><i class="fas fa-fire"></i> 가장 가까운 수행평가</span>
+                        <p id="nearest-assessment" class="alert-urgent-text">로딩 중…</p>
                     </div>
                 </div>
             </section>
 
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-orange-400">
-                    <h2 class="text-lg font-bold mb-3 flex items-center text-gray-700">
-                        <i class="fas fa-bullhorn mr-2 text-orange-400"></i>공지사항
-                    </h2>
-                    <div id="notice-content" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">내용을 불러오는 중...</div>
+            <!-- 공지 + PL -->
+            <section class="info-grid">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span class="info-icon icon-orange"><i class="fas fa-bullhorn"></i></span>
+                        <h2 class="info-title">공지사항</h2>
+                    </div>
+                    <div id="notice-content" class="info-body whitespace-pre-wrap">내용을 불러오는 중…</div>
                 </div>
-                <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-cyan-500">
-                    <h2 class="text-lg font-bold mb-3 flex items-center text-gray-700">
-                        <i class="fas fa-futbol mr-2 text-cyan-500"></i>다음 부리미어리그
-                    </h2>
-                    <div id="pl-content" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">일정을 불러오는 중...</div>
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span class="info-icon icon-cyan"><i class="fas fa-futbol"></i></span>
+                        <h2 class="info-title">다음 부리미어리그</h2>
+                    </div>
+                    <div id="pl-content" class="info-body whitespace-pre-wrap">일정을 불러오는 중…</div>
                 </div>
             </section>
 
-            <section class="mb-8">
-                <h2 class="text-xl font-bold mb-4 flex items-center"><span class="bg-yellow-400 w-1.5 h-6 mr-2 rounded-full"></span>수행평가 일정</h2>
-                <div class="overflow-x-auto rounded-xl shadow-sm border bg-white">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 text-gray-500 text-sm">
-                            <tr><th class="p-4">과목</th><th class="p-4">내용</th><th class="p-4">마감</th></tr>
+            <!-- 수행평가 테이블 -->
+            <section class="section-block">
+                <h2 class="section-title">
+                    <span class="section-pill pill-yellow"></span>
+                    수행평가 일정
+                </h2>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>과목</th>
+                                <th>내용</th>
+                                <th>마감</th>
+                            </tr>
                         </thead>
-                        <tbody id="assessment-list" class="divide-y text-sm text-gray-600"></tbody>
+                        <tbody id="assessment-list"></tbody>
                     </table>
                 </div>
             </section>
 
-            <section>
-                <h2 class="text-xl font-bold mb-4 flex items-center"><span class="bg-green-400 w-1.5 h-6 mr-2 rounded-full"></span>시험 범위</h2>
-                <div id="range-cards" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            <!-- 시험 범위 -->
+            <section class="section-block">
+                <h2 class="section-title">
+                    <span class="section-pill pill-green"></span>
+                    시험 범위
+                </h2>
+                <div id="range-cards" class="range-grid"></div>
             </section>
         </div>
 
+        <!-- ───── 게시판 탭 ───── -->
         <div id="content-board" class="hidden">
-            <section class="bg-white rounded-2xl shadow-md p-6">
-                <h2 class="text-xl font-bold mb-4">💬 게시판</h2>
-                <div id="post-input-section" class="hidden mb-6">
-                    <textarea id="post-text" class="w-full p-4 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" rows="2" placeholder="글을 작성.."></textarea>
-                    <button id="addPostBtn" class="w-full mt-2 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition">게시하기</button>
+            <section class="board-wrap">
+                <div class="board-header">
+                    <h2 class="board-title">게시판</h2>
                 </div>
-                <div id="post-login-msg" class="text-center py-4 text-gray-400 text-sm border-2 border-dashed rounded-xl mb-6">로그인하면 글을 남길 수 있습니다.</div>
-                <div id="post-list" class="space-y-4"></div>
+
+                <div id="post-input-section" class="hidden post-composer">
+                    <textarea id="post-text" class="post-textarea" rows="2" placeholder="반 친구들에게 하고 싶은 말을 남겨보세요…"></textarea>
+                    <button id="addPostBtn" class="post-submit-btn">
+                        <i class="fas fa-paper-plane"></i> 게시하기
+                    </button>
+                </div>
+
+                <div id="post-login-msg" class="login-nudge">
+                    <i class="fas fa-lock"></i>
+                    <span>로그인하면 글을 남길 수 있습니다.</span>
+                </div>
+
+                <div id="post-list" class="post-list"></div>
             </section>
         </div>
 
-        <section id="admin-panel" class="hidden mt-10 p-6 bg-gray-900 rounded-3xl text-white shadow-2xl">
-            <h2 class="text-lg font-bold mb-4 text-yellow-400"><i class="fas fa-tools mr-2"></i>관리자 데이터 수정</h2>
-            <div class="grid grid-cols-1 gap-4 text-sm">
-                <input type="date" id="input-date" class="w-full bg-gray-800 p-2 rounded text-white border-none">
-                <textarea id="input-assessments" class="w-full bg-gray-800 p-2 rounded h-20 text-white" placeholder="수행평가 (과목|내용|날짜)"></textarea>
-                <textarea id="input-ranges" class="w-full bg-gray-800 p-2 rounded h-20 text-white" placeholder="시험 범위 (과목:내용)"></textarea>
-                <textarea id="input-notice" class="w-full bg-gray-800 p-2 rounded h-20 text-white" placeholder="공지사항 입력"></textarea>
-                <textarea id="input-pl" class="w-full bg-gray-800 p-2 rounded h-20 text-white" placeholder="PL 일정 입력"></textarea>
-                <button id="saveBtn" class="bg-yellow-500 text-black font-black py-3 rounded-xl hover:bg-yellow-400 transition">서버에 저장하기</button>
+        <!-- ───── 관리자 패널 ───── -->
+        <section id="admin-panel" class="hidden admin-panel">
+            <h2 class="admin-title">
+                <i class="fas fa-tools"></i> 관리자 데이터 수정
+            </h2>
+            <div class="admin-grid">
+                <label class="admin-label">중간고사 날짜
+                    <input type="date" id="input-date" class="admin-input">
+                </label>
+                <label class="admin-label">수행평가 (과목|내용|날짜)
+                    <textarea id="input-assessments" class="admin-input admin-textarea" placeholder="국어|독서 발표|2025-05-10"></textarea>
+                </label>
+                <label class="admin-label">시험 범위 (과목:내용)
+                    <textarea id="input-ranges" class="admin-input admin-textarea" placeholder="수학:교과서 1~3단원"></textarea>
+                </label>
+                <label class="admin-label">공지사항
+                    <textarea id="input-notice" class="admin-input admin-textarea" placeholder="공지 내용 입력"></textarea>
+                </label>
+                <label class="admin-label">PL 일정
+                    <textarea id="input-pl" class="admin-input admin-textarea" placeholder="PL 일정 입력"></textarea>
+                </label>
+                <button id="saveBtn" class="admin-save-btn">
+                    <i class="fas fa-save"></i> 서버에 저장하기
+                </button>
             </div>
         </section>
+
     </main>
+
+    <footer class="site-footer">
+        <p>BYHS 1-4 · 2025</p>
+    </footer>
 
     <script type="module" src="script.js"></script>
 </body>
