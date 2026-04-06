@@ -1,60 +1,35 @@
-/* 탭 활성화 디자인 */
+/* 탭 활성화 */
 .tab-active { 
-    border-bottom: 4px solid #1e293b; /* 헤더 톤에 맞춘 다크 네이비 */
+    border-bottom: 4px solid #1e293b; 
     color: #1e293b; 
     font-weight: bold; 
 }
 
-/* 자동 하이퍼링크 */
+/* 자동 링크 */
 .auto-link { 
     color: #2563eb; 
     text-decoration: underline; 
     font-weight: 500; 
 }
 
-.auto-link:hover { 
-    color: #1e40af; 
-}
-
-/* 관리자 삭제 버튼 */
+/* 삭제 버튼 */
 .delete-btn { 
     color: #ef4444; 
     font-size: 0.75rem; 
     font-weight: bold; 
     margin-left: 10px; 
     cursor: pointer; 
-    border: none; 
-    background: none; 
 }
 
-.delete-btn:hover { 
-    text-decoration: underline; 
-}
+/* 모바일 깨짐 방지 및 공백 유지 */
+body { margin: 0; padding: 0; overflow-x: hidden; }
+.whitespace-pre-wrap { white-space: pre-wrap; word-break: break-all; }
+.hidden { display: none; }
 
-/* 공백 및 줄바꿈 유지 */
-.whitespace-pre-wrap {
-    white-space: pre-wrap;
-    word-break: break-all;
-}
-
-.hidden {
-    display: none;
-}
-/* style.css 맨 아래 추가 */
-
-/* 모바일 브라우저에서 헤더가 겹치는 문제 방지 */
-body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden; /* 가로 스크롤 방지 */
-}
-
-header {
-    min-height: 80px; /* 헤더의 최소 높이 확보 */
-}
-
-/* 탭 버튼 글자가 너무 길어 깨질 때 조절 */
-nav button {
-    font-size: 0.9rem;
-    white-space: nowrap; /* 글자 줄바꿈 방지 */
+/* 게시판 카드 스타일 */
+.post-card {
+    background-color: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #f3f4f6;
 }
