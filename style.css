@@ -10,7 +10,45 @@ header {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
 }
 
-/* 카드 디자인 */
+/* 카드 디자인 */body {
+    font-family: 'Pretendard', sans-serif;
+}
+
+.card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    transition: 0.25s;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+}
+
+.title {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.btn-primary {
+    width: 100%;
+    background: #4f46e5;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.tab-active {
+    border-bottom: 3px solid black;
+}
 .card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(8px);
