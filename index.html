@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>부여고 1-4 ALL-IN-ONE</title>
+    <title>BYHS 1-4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -23,9 +23,9 @@
 
     <nav class="w-full bg-white/90 backdrop-blur-md flex border-b sticky top-0 z-50 shadow-sm overflow-x-auto">
         <div class="max-w-4xl mx-auto w-full flex min-w-[420px]">
-            <button id="tab-exam" class="flex-1 py-4 font-bold tab-active transition-all text-[13px]">🗓️ 학업 일정</button>
-            <button id="tab-pl" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-x border-gray-50">🏆 PL 리그</button>
-            <button id="tab-meal" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-r border-gray-50">🍱 오늘 급식</button>
+            <button id="tab-exam" class="flex-1 py-4 font-bold tab-active transition-all text-[13px]">🗓️ 수행 & 시험</button>
+            <button id="tab-pl" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-x border-gray-50">🏆 부리미어 리그</button>
+            <button id="tab-meal" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-r border-gray-50">🍱 급식</button>
             <button id="tab-board" class="flex-1 py-4 font-bold text-gray-400 transition-all text-[13px]">💬 게시판</button>
         </div>
     </nav>
@@ -46,14 +46,14 @@
                 <h2 class="title"><i class="fas fa-bolt text-yellow-500"></i> 오늘의 공지</h2>
                 <div id="notice-content" class="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-wrap"></div>
             </section>
-            <section class="card"><h2 class="title mb-4">🗓️ 수행평가 리스트</h2><div class="overflow-hidden rounded-xl border border-gray-100"><table class="w-full text-left text-sm"><thead class="bg-gray-50 text-gray-400 font-bold"><tr><th class="p-4">과목</th><th class="p-4">내용</th><th class="p-4 text-right">마감</th></tr></thead><tbody id="assessment-list" class="divide-y divide-gray-50"></tbody></table></div></section>
+            <section class="card"><h2 class="title mb-4">🗓️ 수행평가 리스트</h2><div class="overflow-hidden rounded-xl border border-gray-100"><table class="w-full text-left text-sm"><thead class="bg-gray-50 text-gray-400 font-bold"><tr><th class="p-4">과목</th><th class="p-4">내용</th><th class="p-4 text-right">끝</th></tr></thead><tbody id="assessment-list" class="divide-y divide-gray-50"></tbody></table></div></section>
             <section class="card"><h2 class="title mb-4">📖 시험 범위</h2><div id="range-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
         </div>
 
         <div id="content-pl" class="hidden">
             <section class="card !bg-slate-900 border-none text-white p-8">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-2xl font-black italic tracking-tighter text-cyan-400 underline decoration-cyan-500/30">BOORIMIER LEAGUE</h2>
+                    <h2 class="text-2xl font-black italic tracking-tighter text-cyan-400 underline decoration-cyan-500/30">부리미어리그</h2>
                     <i class="fas fa-trophy text-yellow-400 text-2xl animate-bounce"></i>
                 </div>
                 <div id="pl-main-content" class="min-h-[200px] flex items-center justify-center text-center"></div>
@@ -77,20 +77,20 @@
 
         <div id="content-board" class="hidden">
             <section class="card">
-                <h2 class="title mb-4">💬 우리들의 공간</h2>
+                <h2 class="title mb-4">💬 게시판</h2>
                 <div id="post-input-section" class="hidden mb-6">
-                    <textarea id="post-text" class="input mb-3" rows="3" placeholder="기분 좋은 한마디를 남겨주세요!"></textarea>
+                    <textarea id="post-text" class="input mb-3" rows="3" placeholder="작성..."></textarea>
                     <button id="addPostBtn" class="btn-primary font-bold shadow-lg">작성하기</button>
                 </div>
                 <div id="post-login-msg" class="text-center py-10 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl mb-6">
-                    글을 쓰려면 로그인이 필요합니다. (상단 Admin 버튼 클릭)
+                    글을 쓰려면 로그인이 필요합니다. (상단 버튼 클릭)
                 </div>
                 <div id="post-list" class="space-y-4"></div>
             </section>
         </div>
 
         <section id="admin-panel" class="hidden mt-10 p-8 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl relative z-[100]">
-            <h2 class="text-xl font-black mb-6 text-cyan-400 italic">ADMIN DASHBOARD</h2>
+            <h2 class="text-xl font-black mb-6 text-cyan-400 italic">관리자 수정</h2>
             <div class="space-y-4 text-sm text-slate-300">
                 <div><label class="block mb-2 font-bold">시험 날짜</label><input type="date" id="input-date" class="admin-input"></div>
                 <div><label class="block mb-2 font-bold">수행평가 (과목|내용|MM.DD)</label><textarea id="input-assessments" class="admin-input h-24" placeholder="수학|문제풀이|04.15"></textarea></div>
