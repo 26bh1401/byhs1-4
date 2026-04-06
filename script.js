@@ -19,14 +19,12 @@ const provider = new GoogleAuthProvider();
 const ADMIN_EMAIL = "kr.craft1016@gmail.com"; 
 const dataDoc = doc(db, "classData", "main");
 
-// 헬퍼: 링크 변환
 const linkify = (text) => {
     if (!text) return "";
     const urlPattern = /(https?:\/\/[^\s]+)/g;
     return text.replace(urlPattern, '<a href="$1" target="_blank" class="auto-link">$1</a>');
 };
 
-// 탭 전환 기능
 const switchTab = (tab) => {
     document.getElementById('content-exam').classList.toggle('hidden', tab !== 'exam');
     document.getElementById('content-board').classList.toggle('hidden', tab !== 'board');
@@ -37,18 +35,23 @@ const switchTab = (tab) => {
 document.getElementById('tab-exam').onclick = () => switchTab('exam');
 document.getElementById('tab-board').onclick = () => switchTab('board');
 
-// 데이터 감시 (시험/수행)
 onSnapshot(dataDoc, (snap) => {
     if (snap.exists()) {
         const data = snap.data();
+        
+        // D-Day
         const diff = new Date(data.examDate) - new Date();
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
         document.getElementById('exam-dday').innerText = days > 0 ? `D-${days}` : (days === 0 ? "D-Day" : "종료");
 
+        // 공지사항 & PL 일정
+        document.getElementById('notice-content').innerHTML = linkify(data.notice || "공지가 없습니다.");
+        document.getElementById('pl-content').innerHTML = linkify(data.plSchedule || "일정이 없습니다.");
+
+        // 수행평가
         const listBody = document.getElementById('assessment-list');
         listBody.innerHTML = "";
-        const rows = data.rawAssessments.split('\n').filter(r => r.includes('|'));
-        
+        const rows = (data.rawAssessments || "").split('\n').filter(r => r.includes('|'));
         if(rows.length > 0) {
             const firstRow = rows[0].split('|');
             document.getElementById('nearest-assessment').innerHTML = `${firstRow[0]} - ${linkify(firstRow[1])} (${firstRow[2]})`;
@@ -58,22 +61,26 @@ onSnapshot(dataDoc, (snap) => {
             });
         }
 
+        // 시험 범위
         const cardCont = document.getElementById('range-cards');
         cardCont.innerHTML = "";
-        data.rawRanges.split('\n').forEach(line => {
+        (data.rawRanges || "").split('\n').forEach(line => {
             if(line.includes(':')) {
                 const [t, d] = line.split(':');
                 cardCont.innerHTML += `<div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><h3 class="font-bold text-green-700 mb-1">${t}</h3><p class="text-xs text-gray-500">${linkify(d)}</p></div>`;
             }
         });
 
-        document.getElementById('input-date').value = data.examDate;
-        document.getElementById('input-assessments').value = data.rawAssessments;
-        document.getElementById('input-ranges').value = data.rawRanges;
+        // 관리자 인풋 세팅
+        document.getElementById('input-date').value = data.examDate || "";
+        document.getElementById('input-assessments').value = data.rawAssessments || "";
+        document.getElementById('input-ranges').value = data.rawRanges || "";
+        document.getElementById('input-notice').value = data.notice || "";
+        document.getElementById('input-pl').value = data.plSchedule || "";
     }
 });
 
-// 게시판 관리
+// 게시판 로직
 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(40));
 onSnapshot(q, (snap) => {
     const list = document.getElementById('post-list');
@@ -85,7 +92,6 @@ onSnapshot(q, (snap) => {
         const postId = docSnap.id;
         const postEl = document.createElement('div');
         postEl.className = "bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm";
-        
         let deleteBtnHtml = isAdmin ? `<button class="delete-btn" data-id="${postId}">삭제</button>` : "";
         postEl.innerHTML = `
             <div class="flex justify-between text-xs mb-1">
@@ -93,10 +99,7 @@ onSnapshot(q, (snap) => {
                 <span class="text-gray-400">${p.createdAt?.toDate().toLocaleString().slice(5, 16)}</span>
             </div>
             <p class="text-sm text-gray-700">${linkify(p.text)}</p>`;
-        
-        if(isAdmin) {
-            postEl.querySelector('.delete-btn').onclick = () => deletePost(postId);
-        }
+        if(isAdmin) postEl.querySelector('.delete-btn').onclick = () => deletePost(postId);
         list.appendChild(postEl);
     });
 });
@@ -112,7 +115,6 @@ document.getElementById('addPostBtn').onclick = async () => {
     document.getElementById('post-text').value = "";
 };
 
-// 로그인 및 저장 로직
 onAuthStateChanged(auth, (user) => {
     const isAdmin = user && user.email === ADMIN_EMAIL;
     document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
@@ -125,11 +127,15 @@ onAuthStateChanged(auth, (user) => {
 
 document.getElementById('saveBtn').onclick = async () => {
     if(!confirm("저장할까요?")) return;
-    await setDoc(dataDoc, {
-        examDate: document.getElementById('input-date').value,
-        rawAssessments: document.getElementById('input-assessments').value,
-        rawRanges: document.getElementById('input-ranges').value,
-        lastUpdated: new Date().toLocaleString()
-    });
-    alert("저장 완료!");
+    try {
+        await setDoc(dataDoc, {
+            examDate: document.getElementById('input-date').value,
+            rawAssessments: document.getElementById('input-assessments').value,
+            rawRanges: document.getElementById('input-ranges').value,
+            notice: document.getElementById('input-notice').value,
+            plSchedule: document.getElementById('input-pl').value,
+            lastUpdated: new Date().toLocaleString()
+        });
+        alert("저장 완료!");
+    } catch(e) { alert("저장 실패!"); }
 };
