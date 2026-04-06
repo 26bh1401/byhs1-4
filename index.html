@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BYHS 1-4</title>
+    <title>BYHS 1-4 통합 알림장</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -14,14 +14,14 @@
     <header class="w-full bg-gradient-to-r from-slate-800 to-slate-600 text-white py-6 px-6 relative z-30 shadow-lg">
         <div class="max-w-4xl mx-auto">
             <h1 class="text-2xl font-extrabold tracking-tight">📢 BYHS 1-4</h1>
-            <button id="loginBtn" class="absolute right-6 top-6 text-xs border border-white/50 hover:bg-white/10 px-3 py-1.5 rounded transition">로그인</button>
+            <button id="loginBtn" class="absolute right-6 top-6 text-xs border border-white/50 hover:bg-white/10 px-3 py-1.5 rounded transition">관리자 로그인</button>
         </div>
     </header>
 
     <nav class="w-full bg-white flex border-b sticky top-0 z-20 shadow-sm">
         <div class="max-w-4xl mx-auto w-full flex">
-            <button id="tab-exam" class="flex-1 py-4 font-semibold tab-active transition">🗓️ 시험 & 수행</button>
-            <button id="tab-board" class="flex-1 py-4 font-semibold text-gray-400 transition">💬 게시판</button>
+            <button id="tab-exam" class="flex-1 py-4 font-semibold tab-active transition">🗓️ 학업 일정</button>
+            <button id="tab-board" class="flex-1 py-4 font-semibold text-gray-400 transition">💬 자유 게시판</button>
         </div>
     </nav>
 
@@ -47,7 +47,7 @@
                     <div id="notice-content" class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">로딩 중...</div>
                 </div>
                 <div class="card border-t-4 border-cyan-500">
-                    <h2 class="title flex items-center text-gray-700"><i class="fas fa-stopwatch mr-2 text-cyan-500 animate-pulse"></i>다음 부리미어리그 일정</h2>
+                    <h2 class="title flex items-center text-gray-700"><i class="fas fa-stopwatch mr-2 text-cyan-500 animate-pulse"></i>다음 부리미어 일정</h2>
                     <div id="pl-content" class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">로딩 중...</div>
                 </div>
             </section>
@@ -72,7 +72,7 @@
 
         <div id="content-board" class="hidden">
             <section class="card">
-                <h2 class="title">💬 게시판</h2>
+                <h2 class="title">💬 우리반 한마디</h2>
                 <div id="post-input-section" class="hidden mt-4 mb-6">
                     <textarea id="post-text" class="input" rows="2" placeholder="내용을 입력하세요."></textarea>
                     <button id="addPostBtn" class="btn-primary mt-2">게시하기</button>
