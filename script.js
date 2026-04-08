@@ -20,7 +20,7 @@ const provider = new GoogleAuthProvider();
 // 2. 관리자 이메일을 목록(배열)으로 관리
 const ADMIN_EMAILS = [
     "kr.craft1016@gmail.com", 
-    "26bh1401@gmail.com" // 여기에 두 번째 관리자 이메일을 넣으세요!
+    "26bh1401@g.cnees.kr" // 여기에 두 번째 관리자 이메일을 넣으세요!
 ];
 
 const dataDoc = doc(db, "classData", "main");
