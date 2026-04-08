@@ -56,7 +56,23 @@
                     <h2 class="text-2xl font-black italic tracking-tighter text-cyan-400 underline decoration-cyan-500/30">부리미어리그</h2>
                     <i class="fas fa-trophy text-yellow-400 text-2xl animate-bounce"></i>
                 </div>
-                <div id="pl-main-content" class="min-h-[200px] flex items-center justify-center text-center"></div>
+                <div id="pl-main-content" class="mb-8 text-center"></div>
+                
+                <div class="bg-slate-800/50 rounded-3xl p-6 border border-slate-700">
+                    <h3 class="text-sm font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                        <i class="fas fa-list-ol"></i> SEASON RANKING
+                    </h3>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-500 border-b border-slate-700">
+                            <tr>
+                                <th class="pb-3 px-2">RK</th>
+                                <th class="pb-3">TEAM</th>
+                                <th class="pb-3 text-right">W-D-L</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pl-rank-list" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
             </section>
         </div>
 
@@ -71,7 +87,6 @@
                     </div>
                 </div>
                 <div id="meal-display-container" class="min-h-[250px] flex items-center justify-center transition-all duration-300"></div>
-                <p id="meal-update-time" class="text-center text-[10px] text-gray-300 mt-8 font-bold italic tracking-widest"></p>
             </section>
         </div>
 
@@ -97,6 +112,7 @@
                 <div><label class="block mb-2 font-bold">시험 범위 (과목:내용)</label><textarea id="input-ranges" class="admin-input h-24" placeholder="수학:집합 ~ 함수"></textarea></div>
                 <div><label class="block mb-2 font-bold">공지사항</label><textarea id="input-notice" class="admin-input h-24" placeholder="📢 내일은 운동복 지참!"></textarea></div>
                 <div><label class="block mb-2 font-bold">PL 일정 (MM/DD HH:MM 내용)</label><textarea id="input-pl" class="admin-input h-24" placeholder="04/10 13:00 4반 vs 1반"></textarea></div>
+                <div><label class="block mb-2 font-bold">PL 전적 (반이름|승-무-패)</label><textarea id="input-pl-rank" class="admin-input h-24" placeholder="4반|2승 0무 0패"></textarea></div>
                 <button id="saveBtn" class="w-full bg-cyan-500 text-slate-900 font-black py-4 rounded-2xl mt-4 uppercase hover:bg-cyan-400 transition-all active:scale-95">Update Server</button>
             </div>
         </section>
