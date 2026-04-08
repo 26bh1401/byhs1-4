@@ -2,14 +2,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, query, orderBy, limit, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 1. 새로운 파이어베이스 설정 적용
+// 1. 파이어베이스 설정 (새 프로젝트)
 const firebaseConfig = {
-  apiKey: "AIzaSyBiUbjpxKMTr96tSoBwwgFn8-5NTCLEnJ8",
-  authDomain: "byhs1-4-de284.firebaseapp.com",
-  projectId: "byhs1-4-de284",
-  storageBucket: "byhs1-4-de284.firebasestorage.app",
-  messagingSenderId: "732735890321",
-  appId: "1:732735890321:web:230c9225b7dbd1f22f7030"
+    apiKey: "AIzaSyBiUbjpxKMTr96tSoBwwgFn8-5NTCLEnJ8",
+    authDomain: "byhs1-4-de284.firebaseapp.com",
+    projectId: "byhs1-4-de284",
+    storageBucket: "byhs1-4-de284.firebasestorage.app",
+    messagingSenderId: "732735890321",
+    appId: "1:732735890321:web:230c9225b7dbd1f22f7030"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -17,33 +17,33 @@ const auth = getAuth();
 const db = getFirestore();
 const provider = new GoogleAuthProvider();
 
-// 2. 관리자 이메일을 목록(배열)으로 관리
+// 2. 관리자 이메일 목록
 const ADMIN_EMAILS = [
     "kr.craft1016@gmail.com", 
-    "26bh1401@g.cnees.kr" // 여기에 두 번째 관리자 이메일을 넣으세요!
+    "26bh1401@g.cnees.kr"
 ];
 
 const dataDoc = doc(db, "classData", "main");
+const loginBtn = document.getElementById('loginBtn');
+const addPostBtn = document.getElementById('addPostBtn');
+const postText = document.getElementById('post-text');
 
-// --- [로그인 상태 감지 부분 수정] ---
+// --- [A] 로그인 상태 감지 및 관리자 패널 제어 ---
 onAuthStateChanged(auth, async (user) => {
     const adminPanel = document.getElementById('admin-panel');
     const postInput = document.getElementById('post-input-section');
     const postMsg = document.getElementById('post-login-msg');
-    const loginBtn = document.getElementById('loginBtn');
     
     if (user) {
         loginBtn.innerText = "LOGOUT";
         if (postInput) postInput.classList.remove('hidden');
         if (postMsg) postMsg.classList.add('hidden');
         
-        // 관리자 목록에 로그한 유저의 이메일이 있는지 확인
         if (ADMIN_EMAILS.includes(user.email)) {
             adminPanel.classList.remove('hidden');
             const snap = await getDoc(dataDoc);
             if (snap.exists()) {
                 const d = snap.data();
-                // 기존 데이터 불러오기 로직...
                 document.getElementById('input-date').value = d.examDate || "";
                 document.getElementById('input-assessments').value = d.rawAssessments || "";
                 document.getElementById('input-ranges').value = d.rawRanges || "";
@@ -62,44 +62,30 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// --- [게시판 삭제 버튼 권한 수정] ---
-// 게시판 목록 렌더링 부분에서 아래 조건을 사용하세요.
-// let isAdmin = auth.currentUser && ADMIN_EMAILS.includes(auth.currentUser.email);
-
-// 유틸리티 함수
-let mealStore = { 1: "정보 없음", 2: "정보 없음", 3: "정보 없음" };
-const linkify = (t) => t ? t.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-indigo-500 font-bold underline">$1</a>') : "";
-
-// --- [A] 탭 전환 시스템 (버튼 클릭 안되는 문제 해결 핵심) ---
+// --- [B] 탭 전환 시스템 ---
 const tabs = ['exam', 'pl', 'meal', 'board'];
 const switchTab = (id) => {
     tabs.forEach(t => {
         const content = document.getElementById(`content-${t}`);
         const btn = document.getElementById(`tab-${t}`);
         if (content) content.classList.add('hidden');
-        if (btn) {
-            btn.className = 'flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-x border-gray-50';
-        }
+        if (btn) btn.className = 'flex-1 py-4 font-bold text-gray-400 transition-all text-[13px] border-x border-gray-50';
     });
     
     const activeContent = document.getElementById(`content-${id}`);
     const activeBtn = document.getElementById(`tab-${id}`);
     if (activeContent) activeContent.classList.remove('hidden');
-    if (activeBtn) {
-        activeBtn.className = 'flex-1 py-4 font-bold tab-active transition-all text-[13px]';
-    }
+    if (activeBtn) activeBtn.className = 'flex-1 py-4 font-bold tab-active transition-all text-[13px]';
 
-    if(id === 'meal') getMeal(); // 급식 탭 클릭 시 데이터 로드
+    if(id === 'meal') getMeal();
 };
 
-// 모든 탭 버튼에 클릭 이벤트 등록
 tabs.forEach(t => {
     const btn = document.getElementById(`tab-${t}`);
     if (btn) btn.onclick = () => switchTab(t);
 });
 
-// --- [B] 로그인 및 관리자 설정 ---
-const loginBtn = document.getElementById('loginBtn');
+// --- [C] 로그인 버튼 클릭 이벤트 ---
 loginBtn.onclick = async () => {
     if (auth.currentUser) {
         if (confirm("로그아웃 하시겠습니까?")) await signOut(auth);
@@ -109,12 +95,13 @@ loginBtn.onclick = async () => {
     }
 };
 
-// --- [C] 실시간 데이터 렌더링 (PL 전적 포함) ---
+// --- [D] 실시간 데이터 렌더링 ---
+const linkify = (t) => t ? t.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-indigo-500 font-bold underline">$1</a>') : "";
+
 onSnapshot(dataDoc, (snap) => {
     if (!snap.exists()) return;
     const data = snap.data();
 
-    // 1. 시험 디데이
     if (data.examDate) {
         const today = new Date(); today.setHours(0,0,0,0);
         const target = new Date(data.examDate); target.setHours(0,0,0,0);
@@ -122,13 +109,9 @@ onSnapshot(dataDoc, (snap) => {
         document.getElementById('exam-dday').innerText = diff > 0 ? `D-${diff}` : (diff === 0 ? "D-Day🔥" : "종료");
     }
 
-    // 2. 가장 빠른 수행평가
     document.getElementById('nearest-assessment').innerHTML = getNearest(data.rawAssessments || "");
-
-    // 3. 공지사항
     document.getElementById('notice-content').innerHTML = linkify(data.notice);
 
-    // 4. 수행평가 리스트
     const list = document.getElementById('assessment-list');
     list.innerHTML = "";
     (data.rawAssessments || "").split('\n').filter(r => r.includes('|')).forEach(r => {
@@ -136,7 +119,6 @@ onSnapshot(dataDoc, (snap) => {
         list.innerHTML += `<tr><td class="p-4 font-black text-indigo-600">${s}</td><td class="p-4 text-gray-600">${linkify(c)}</td><td class="p-4 text-right font-bold text-slate-400">${d}</td></tr>`;
     });
 
-    // 5. 시험 범위
     const rCont = document.getElementById('range-cards');
     rCont.innerHTML = "";
     (data.rawRanges || "").split('\n').filter(l => l.includes(':')).forEach(l => {
@@ -144,7 +126,6 @@ onSnapshot(dataDoc, (snap) => {
         rCont.innerHTML += `<div class="bg-white p-6 rounded-2xl border border-indigo-50 animate-fadeIn"><h3 class="font-bold text-indigo-700 text-lg mb-2">${t}</h3><p class="text-slate-600 text-sm">${linkify(d)}</p></div>`;
     });
 
-    // 6. 부리미어 리그 (일정 및 전적)
     const plEl = document.getElementById('pl-main-content');
     plEl.innerHTML = `<div class="w-full bg-slate-800/50 p-6 rounded-2xl border border-slate-700 text-left animate-fadeIn"><p class="text-lg font-bold">${linkify(data.plSchedule || "경기 정보 없음")}</p></div>`;
 
@@ -156,45 +137,74 @@ onSnapshot(dataDoc, (snap) => {
     });
 });
 
-// --- [D] 게시판 로직 ---
-const addPostBtn = document.getElementById('addPostBtn');
-const postText = document.getElementById('post-text');
-// 수정 전: orderBy가 있으면 색인이 없어서 안 보일 수 있음
-// 수정 후: 일단 정렬을 빼고 글이 올라오는지 확인합니다.
-
+// --- [E] 게시판 실시간 불러오기 ---
 onSnapshot(query(collection(db, "posts"), limit(20)), (snap) => {
     const postList = document.getElementById('post-list');
     if (!postList) return;
-    
     postList.innerHTML = "";
     if (snap.empty) {
         postList.innerHTML = "<p class='text-center text-gray-400 py-10'>첫 게시글을 남겨보세요!</p>";
         return;
     }
-
     snap.forEach(docSnap => {
         const p = docSnap.data();
         const div = document.createElement('div');
         div.className = "card !p-5 bg-white border border-gray-100 animate-fadeIn relative mb-4";
-        
-        // 시간 데이터가 없을 경우를 대비한 방어 코드
         const timeDisplay = p.createdAt ? p.createdAt.toDate().toLocaleString().slice(5, 16) : "방금 전";
-        
         let isAdmin = auth.currentUser && ADMIN_EMAILS.includes(auth.currentUser.email);
         let delBtn = isAdmin ? `<button onclick="window.deletePost('${docSnap.id}')" class="text-red-400 text-[10px] ml-2">삭제</button>` : "";
-        
         div.innerHTML = `
             <div class="flex justify-between text-[11px] mb-2 text-gray-400">
                 <div><span class="font-black text-indigo-500 mr-2">${p.user}</span>${delBtn}</div>
                 <span>${timeDisplay}</span>
             </div>
-            <p class="text-sm text-slate-700 whitespace-pre-wrap">${p.text}</p>
-        `;
+            <p class="text-sm text-slate-700 whitespace-pre-wrap">${p.text}</p>`;
         postList.appendChild(div);
     });
 });
 
-// --- [E] 급식 로직 ---
+// --- [F] 글쓰기 및 삭제 함수 (전역 등록) ---
+if (addPostBtn) {
+    addPostBtn.onclick = async () => {
+        const text = postText.value.trim();
+        if (!text) return alert("내용을 입력해주세요.");
+        if (!auth.currentUser) return alert("로그인이 필요합니다.");
+        try {
+            await addDoc(collection(db, "posts"), {
+                text: text,
+                user: auth.currentUser.displayName || "익명",
+                email: auth.currentUser.email,
+                createdAt: serverTimestamp()
+            });
+            postText.value = "";
+        } catch (e) { alert("전송 실패: " + e.message); }
+    };
+}
+
+window.deletePost = async (docId) => {
+    if (!auth.currentUser) return alert("로그인이 필요합니다.");
+    if (!confirm("정말 이 게시물을 삭제하시겠습니까?")) return;
+    try {
+        await deleteDoc(doc(db, "posts", docId));
+        alert("삭제되었습니다.");
+    } catch (e) { alert("삭제 실패"); }
+};
+
+// --- [G] 서버 데이터 저장 버튼 ---
+document.getElementById('saveBtn').onclick = async () => {
+    await setDoc(dataDoc, {
+        examDate: document.getElementById('input-date').value,
+        rawAssessments: document.getElementById('input-assessments').value,
+        rawRanges: document.getElementById('input-ranges').value,
+        notice: document.getElementById('input-notice').value,
+        plSchedule: document.getElementById('input-pl').value,
+        plRank: document.getElementById('input-pl-rank').value
+    }, { merge: true });
+    alert("서버에 저장되었습니다!");
+};
+
+// --- [H] 급식 및 기타 유틸리티 ---
+let mealStore = { 1: "정보 없음", 2: "정보 없음", 3: "정보 없음" };
 async function getMeal() {
     const now = new Date();
     const today = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
@@ -222,7 +232,6 @@ function showMeal(type) {
     if(btn) btn.onclick = () => showMeal(t);
 });
 
-// --- [F] 유틸리티 함수들 ---
 function getNearest(raw) {
     const lines = raw.split('\n').filter(l => l.includes('|'));
     if (lines.length === 0) return "--";
@@ -239,73 +248,3 @@ function getNearest(raw) {
     const dday = Math.ceil(minDiff / (1000 * 60 * 60 * 24));
     return nearestSubj ? `<p class="text-red-600 font-black text-2xl">D-${dday}</p><p class="text-gray-700 text-[10px] font-bold mt-1">${nearestSubj}</p>` : "--";
 }
-
-document.getElementById('saveBtn').onclick = async () => {
-    await setDoc(dataDoc, {
-        examDate: document.getElementById('input-date').value,
-        rawAssessments: document.getElementById('input-assessments').value,
-        rawRanges: document.getElementById('input-ranges').value,
-        notice: document.getElementById('input-notice').value,
-        plSchedule: document.getElementById('input-pl').value,
-        plRank: document.getElementById('input-pl-rank').value
-    }, { merge: true });
-    alert("서버에 저장되었습니다!");
-};
-
-// 2. 정의한 함수를 전역(window) 객체에 즉시 할당합니다.
-window.deletePost = deletePostHandler;
-
-// --- [G] 게시물 추가 및 삭제 함수 (window 등록) ---
-
-// 1. 게시물 추가 함수
-addPostBtn.onclick = async () => {
-    const text = postText.value.trim();
-    if (!text) return;
-    if (!auth.currentUser) return alert("로그인이 필요합니다.");
-
-    try {
-        await addDoc(collection(db, "posts"), {
-            text: text,
-            user: auth.currentUser.displayName || "익명",
-            email: auth.currentUser.email,
-            createdAt: serverTimestamp()
-        });
-        postText.value = "";
-    } catch (e) {
-        alert("전송 실패: " + e.message);
-    }
-};
-
-// 2. 게시물 삭제 함수 정의 (이 부분이 빠져서 에러가 났던 겁니다!)
-const deletePostHandler = async (docId) => {
-    if (!auth.currentUser) {
-        alert("로그인이 필요합니다.");
-        return;
-    }
-
-    if (!confirm("정말 이 게시물을 삭제하시겠습니까?")) return;
-
-    try {
-        await deleteDoc(doc(db, "posts", docId));
-        alert("삭제되었습니다.");
-    } catch (error) {
-        console.error("삭제 중 에러 발생:", error);
-        alert("삭제 권한이 없거나 오류가 발생했습니다.");
-    }
-};
-
-// 3. 전역 객체에 함수 등록 (HTML onclick에서 인식 가능하게 함)
-window.deletePost = deletePostHandler;
-
-// --- [H] 서버 저장 버튼 ---
-document.getElementById('saveBtn').onclick = async () => {
-    await setDoc(dataDoc, {
-        examDate: document.getElementById('input-date').value,
-        rawAssessments: document.getElementById('input-assessments').value,
-        rawRanges: document.getElementById('input-ranges').value,
-        notice: document.getElementById('input-notice').value,
-        plSchedule: document.getElementById('input-pl').value,
-        plRank: document.getElementById('input-pl-rank').value
-    }, { merge: true });
-    alert("서버에 저장되었습니다!");
-};
