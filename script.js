@@ -43,7 +43,7 @@ function showMeal(t) {
     });
     const container = document.getElementById('meal-display-container');
     if (container) {
-        container.innerHTML = `<div class="w-full bg-${cfg}-50 p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-xs text-${cfg}-400 font-black mb-3">${names[t]}</p><p class="text-sm text-gray-700 leading-relaxed">${mealStore[t] || "정보 없음"}</p></div>`;
+        container.innerHTML = `<div class="w-full bg-${cfg}-50 p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-sm text-${cfg}-400 font-black mb-4">${names[t]}</p><p class="text-lg font-bold text-gray-800 leading-relaxed">${mealStore[t] || "정보 없음"}</p></div>`;
     }
 }
 
