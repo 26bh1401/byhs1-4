@@ -25,6 +25,7 @@ const dataDoc = doc(db, "classData", "main");
 const linkify = (t) => t ? t.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-indigo-500 font-bold underline">$1</a>') : "";
 
 // --- [A] 로그인 및 관리자 상태 감지 ---
+/*
 onAuthStateChanged(auth, async (user) => {
     const adminPanel = document.getElementById('admin-panel');
     const postInput = document.getElementById('post-input-section');
@@ -56,8 +57,10 @@ onAuthStateChanged(auth, async (user) => {
         if (postMsg) postMsg.classList.remove('hidden');
     }
 });
+*/
 
 // --- [B] 탭 전환 시스템 ---
+/*
 const tabs = ['exam', 'pl', 'meal', 'board'];
 const switchTab = (id) => {
     tabs.forEach(t => {
@@ -74,8 +77,29 @@ const switchTab = (id) => {
 tabs.forEach(t => {
     document.getElementById(`tab-${t}`).onclick = () => switchTab(t);
 });
+*/
+
+// 수정된 탭 전환 (급식만 활성화)
+const tabs = ['exam', 'pl', 'meal', 'board'];
+const switchTab = (id) => {
+    if (id !== 'meal') return; // 급식 탭만 동작
+    tabs.forEach(t => {
+        document.getElementById(`content-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).classList.remove('tab-active');
+        document.getElementById(`tab-${t}`).classList.add('text-gray-400');
+    });
+    document.getElementById(`content-${id}`).classList.remove('hidden');
+    document.getElementById(`tab-${id}`).classList.add('tab-active');
+    document.getElementById(`tab-${id}`).classList.remove('text-gray-400');
+    if(id === 'meal') getMeal();
+};
+
+tabs.forEach(t => {
+    document.getElementById(`tab-${t}`).onclick = () => switchTab(t);
+});
 
 // --- [C] 데이터 렌더링 (핵심 수정 부분) ---
+/*
 onSnapshot(dataDoc, (snap) => {
     if (!snap.exists()) return;
     const data = snap.data();
@@ -105,7 +129,7 @@ onSnapshot(dataDoc, (snap) => {
 
         if (diff >= 0) { // 오늘 이후인 것만 표시/계산
             // 리스트 추가
-            list.innerHTML += `<tr><td class="p-4 font-black text-indigo-600">${subj}</td><td class="p-4 text-gray-600">${linkify(cont)}</td><td class="p-4 text-right font-bold text-slate-400">${dateStr}</td></tr>`;
+            list.innerHTML += `<tr><td class="p-4 font-black text-indigo-600">${subj}</td><td class="p-4 text-gray-600">${linkify(cont)}</td><td class="p-4 text-right font-bold text-slate-400">${Math.round(diff / (1000 * 60 * 60 * 24))}일</td></tr>`;
             
             // 디데이 계산
             if (diff < minDiff) {
@@ -120,7 +144,7 @@ onSnapshot(dataDoc, (snap) => {
     const nearestEl = document.getElementById('nearest-assessment');
     if (nearestSubs.length > 0) {
         const ddayVal = Math.round(minDiff / (1000 * 60 * 60 * 24));
-        nearestEl.innerHTML = `<p class="text-red-600 font-black text-2xl">${ddayVal === 0 ? "D-Day🔥" : "D-"+ddayVal}</p><p class="text-gray-700 text-[10px] font-bold mt-1">${nearestSubs.join(', ')}</p>`;
+        nearestEl.innerHTML = `<p class="text-red-600 font-black text-2xl">${ddayVal === 0 ? "D-Day🔥" : "D-"+ddayVal}</p><p class="text-gray-700 text-[10px] font-bold mt-1">${nearestSubs.join(", ")}</p>`;
     } else {
         nearestEl.innerHTML = `<p class="text-gray-400 font-black text-2xl">--</p>`;
     }
@@ -143,11 +167,13 @@ onSnapshot(dataDoc, (snap) => {
     rankList.innerHTML = "";
     (data.plRank || "").split('\n').filter(r => r.includes('|')).forEach((r, idx) => {
         const [team, record] = r.split('|');
-        rankList.innerHTML += `<tr><td class="py-4 px-2 font-black text-cyan-500">${idx+1}</td><td class="py-4 font-bold text-white">${team}</td><td class="py-4 text-right text-slate-300 font-mono">${record}</td></tr>`;
+        rankList.innerHTML += `<tr><td class="py-4 px-2 font-black text-cyan-500">${idx+1}</td><td class="py-4 font-bold text-white">${team}</td><td class="py-4 text-right text-slate-300 font-mono text-sm">${record}</td></tr>`;
     });
 });
+*/
 
 // --- [D] 게시판 로직 ---
+/*
 onSnapshot(query(collection(db, "posts"), limit(20)), (snap) => {
     const postList = document.getElementById('post-list');
     postList.innerHTML = "";
@@ -158,12 +184,14 @@ onSnapshot(query(collection(db, "posts"), limit(20)), (snap) => {
         const time = p.createdAt ? p.createdAt.toDate().toLocaleString().slice(5, 16) : "방금 전";
         let isAdmin = auth.currentUser && ADMIN_EMAILS.includes(auth.currentUser.email);
         let delBtn = isAdmin ? `<button onclick="window.deletePost('${docSnap.id}')" class="text-red-400 text-[10px] ml-2">삭제</button>` : "";
-        div.innerHTML = `<div class="flex justify-between text-[11px] mb-2 text-gray-400"><div><span class="font-black text-indigo-500 mr-2">${p.user}</span>${delBtn}</div><span>${time}</span></div><p class="text-sm text-slate-700 whitespace-pre-wrap">${p.text}</p>`;
+        div.innerHTML = `<div class="flex justify-between text-[11px] mb-2 text-gray-400"><div><span class="font-black text-indigo-500 mr-2">${p.user}</span>${delBtn}</div><span>${time}</span></div><p class="text-gray-700">${linkify(p.text)}</p>`;
         postList.appendChild(div);
     });
 });
+*/
 
 // --- [E] 이벤트 리스너 ---
+/*
 document.getElementById('loginBtn').onclick = async () => {
     if (auth.currentUser) { if (confirm("로그아웃?")) await signOut(auth); }
     else { await signInWithPopup(auth, provider); }
@@ -191,8 +219,9 @@ document.getElementById('saveBtn').onclick = async () => {
     }, { merge: true });
     alert("저장 완료");
 };
+*/
 
-// --- [F] 급식 ---
+// --- [F] 급식 (활성화 상태 유지) ---
 let mealStore = {};
 async function getMeal() {
     const now = new Date();
@@ -213,6 +242,6 @@ function showMeal(t) {
         const b = document.getElementById(`btn-meal-${i}`);
         b.className = i === t ? `px-5 py-2.5 rounded-xl bg-white shadow text-${cfg}-600 font-black` : `px-5 py-2.5 rounded-xl text-gray-400 font-bold`;
     });
-    document.getElementById('meal-display-container').innerHTML = `<div class="w-full bg-${cfg}-50 p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-xs text-${cfg}-400 font-black mb-2">${names[t]}</p><p class="text-lg font-extrabold text-slate-800">${mealStore[t] || "정보 없음"}</p></div>`;
+    document.getElementById('meal-display-container').innerHTML = `<div class="w-full bg-${cfg}-50 p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-xs text-${cfg}-400 font-black mb-3">${names[t]}</p><p class="text-sm text-gray-700 leading-relaxed">${mealStore[t] || "정보 없음"}</p></div>`;
 }
 [1,2,3].forEach(t => document.getElementById(`btn-meal-${t}`).onclick = () => showMeal(t));
