@@ -35,21 +35,20 @@ async function getMealForDate(date) {
     const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=3366de199e3b43ccb46803dcdceb0a92&Type=json&ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=8140052&MLSV_YMD=${dateStr}`;
     try {
         const mealData = {};
-        const resArr = await Promise.all(
-            [1, 2, 3].map(c => 
-                fetch(`${url}&MMEAL_SC_CODE=${c}`)
-                    .then(r => r.json())
-                    .catch(() => null)
-            )
-        );
         
-        resArr.forEach((d, i) => {
-            const mealCode = i + 1;
+        // 각 끼니별로 API 호출
+        for (let mealCode of [1, 2, 3]) {
             try {
-                if (d && d.mealServiceDietInfo && Array.isArray(d.mealServiceDietInfo) && d.mealServiceDietInfo.length > 0) {
-                    const mealInfo = d.mealServiceDietInfo[0];
-                    if (mealInfo.row && mealInfo.row.length > 0) {
-                        mealData[mealCode] = mealInfo.row[0].DDISH_NM
+                const response = await fetch(`${url}&MMEAL_SC_CODE=${mealCode}`);
+                const data = await response.json();
+                
+                console.log(`[${dateStr} 끼니${mealCode}] API응답:`, data);
+                
+                if (data && data.mealServiceDietInfo) {
+                    const mealInfo = data.mealServiceDietInfo[0];
+                    if (mealInfo && mealInfo.row && Array.isArray(mealInfo.row) && mealInfo.row.length > 0) {
+                        const dishes = mealInfo.row[0].DDISH_NM;
+                        mealData[mealCode] = dishes
                             .replace(/[0-9.]/g, "")
                             .replace(/\(\)/g, "")
                             .replace(/<br\/>/g, ", ")
@@ -61,11 +60,13 @@ async function getMealForDate(date) {
                     mealData[mealCode] = "급식 정보 없음";
                 }
             } catch (err) {
-                mealData[mealCode] = "급식 정보 없음";
+                console.error(`[${dateStr} 끼니${mealCode}] 에러:`, err);
+                mealData[mealCode] = "정보 조회 실패";
             }
-        });
+        }
         
         mealStore[dateStr] = mealData;
+        console.log(`[${dateStr}] 최종 급식 데이터:`, mealData);
         return mealData;
     } catch (e) {
         console.error("급식 정보 조회 실패:", e);
@@ -77,7 +78,17 @@ async function getMealForDate(date) {
 // 오늘의 급식 표시 (기존 기능)
 async function getMeal() {
     const now = new Date();
+    console.log("오늘의 급식 조회:", now);
     const mealData = await getMealForDate(now);
+    console.log("오늘의 급식 데이터:", mealData);
+    
+    // 오늘 날짜로 mealStore에도 저장
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = year + month + day;
+    mealStore[todayStr] = mealData;
+    
     showMeal(now.getHours() < 13 ? 2 : 3);
 }
 
@@ -93,8 +104,12 @@ function showMeal(t) {
     const container = document.getElementById('meal-display-container');
     if (container) {
         const now = new Date();
-        const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
-        const meal = mealStore[dateStr] ? mealStore[dateStr][t] : "정보 없음";
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const dateStr = year + month + day;
+        
+        const meal = (mealStore[dateStr] && mealStore[dateStr][t]) ? mealStore[dateStr][t] : "정보 없음";
         container.innerHTML = `<div class="w-full bg-${cfg}-50 p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-sm text-${cfg}-400 font-black mb-4">${names[t]}</p><p class="text-lg font-bold text-gray-700 leading-relaxed">${meal}</p></div>`;
     }
 }
@@ -122,7 +137,6 @@ function generateCalendar(date) {
     const firstDay = new Date(year, month, 1).getDay();
     
     // 이전 달의 마지막 날들
-    const prevLastDate = new Date(year, month, 0).getDate();
     for (let i = firstDay - 1; i >= 0; i--) {
         calendarHTML += `<div class="p-3 text-center text-gray-300 bg-gray-50 rounded-lg"></div>`;
     }
@@ -162,7 +176,7 @@ function generateCalendar(date) {
 
     document.getElementById('calendar-display').innerHTML = calendarHTML;
 
-    // 급식 정보 미리 로드 (선택사항 - 성능 최적화)
+    // 급식 정보 미리 로드
     loadMealsForMonth(year, month);
 }
 
@@ -202,7 +216,7 @@ async function openMealModal(dateStr) {
     let modalContent = '';
     for (let mealCode = 1; mealCode <= 3; mealCode++) {
         const mealInfo = mealColors[mealCode];
-        const meal = mealData[mealCode] || "정보 없음";
+        const meal = (mealData[mealCode]) ? mealData[mealCode] : "정보 없음";
         modalContent += `
             <div class="${mealInfo.bg} ${mealInfo.border} border-l-4 p-4 rounded-lg">
                 <p class="text-sm font-black ${mealInfo.text} mb-2">${mealInfo.name}</p>
@@ -245,6 +259,8 @@ function switchTab(tabName) {
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("페이지 로드됨");
+    
     // 오늘의 급식 로드
     getMeal();
 
@@ -257,24 +273,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 탭 버튼 이벤트
-    document.getElementById('tab-today').onclick = () => switchTab('today');
-    document.getElementById('tab-calendar').onclick = () => switchTab('calendar');
+    const tabToday = document.getElementById('tab-today');
+    const tabCalendar = document.getElementById('tab-calendar');
+    
+    if (tabToday) {
+        tabToday.onclick = () => switchTab('today');
+    }
+    if (tabCalendar) {
+        tabCalendar.onclick = () => switchTab('calendar');
+    }
 
     // 달력 네비게이션
-    document.getElementById('btn-prev-month').onclick = () => {
-        currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-        generateCalendar(currentCalendarDate);
-    };
+    const prevBtn = document.getElementById('btn-prev-month');
+    const nextBtn = document.getElementById('btn-next-month');
+    
+    if (prevBtn) {
+        prevBtn.onclick = () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            generateCalendar(currentCalendarDate);
+        };
+    }
 
-    document.getElementById('btn-next-month').onclick = () => {
-        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-        generateCalendar(currentCalendarDate);
-    };
+    if (nextBtn) {
+        nextBtn.onclick = () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            generateCalendar(currentCalendarDate);
+        };
+    }
 
     // 모달 외부 클릭 시 닫기
-    document.getElementById('meal-modal').onclick = (e) => {
-        if (e.target.id === 'meal-modal') {
-            closeMealModal();
-        }
-    };
+    const modal = document.getElementById('meal-modal');
+    if (modal) {
+        modal.onclick = (e) => {
+            if (e.target.id === 'meal-modal') {
+                closeMealModal();
+            }
+        };
+    }
 });
+
+// 전역으로 함수 노출
+window.openMealModal = openMealModal;
+window.closeMealModal = closeMealModal;
