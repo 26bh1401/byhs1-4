@@ -1,21 +1,98 @@
 :root {
     --accent-meal: #10b981;
     --bg-slate: #f8fafc;
+    --safe-top: max(0px, env(safe-area-inset-top));
+    --safe-bottom: max(0px, env(safe-area-inset-bottom));
+    --safe-left: max(0px, env(safe-area-inset-left));
+    --safe-right: max(0px, env(safe-area-inset-right));
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-body { background-color: var(--bg-slate); color: #1e293b; -webkit-tap-highlight-color: transparent; }
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Pretendard', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
 
-.card { background: white; border-radius: 1.5rem; padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-.title { font-size: 1.125rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; }
+html {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+}
 
-.animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+body { 
+    background-color: var(--bg-slate); 
+    color: #1e293b;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* 안전 영역 처리 */
+.safe-top {
+    padding-top: calc(var(--safe-top) + 1.5rem);
+}
+
+.safe-bottom {
+    padding-bottom: calc(var(--safe-bottom) + 2rem);
+}
+
+/* 기본 카드 스타일 */
+.card { 
+    background: white; 
+    border-radius: 1.5rem; 
+    padding: 1.5rem; 
+    margin-bottom: 1.25rem; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+@media (max-width: 640px) {
+    .card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+}
+
+.title { 
+    font-size: 1.125rem; 
+    font-weight: 800; 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem;
+}
+
+/* 페이드인 애니메이션 */
+.animate-fadeIn { 
+    animation: fadeIn 0.4s ease-out forwards; 
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+/* 모바일 슬라이드업 애니메이션 */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out forwards;
+}
 
 /* 탭 스타일 */
 .tab-btn {
     cursor: pointer;
     white-space: nowrap;
+    user-select: none;
+    transition: all 0.2s ease;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.tab-btn:active {
+    opacity: 0.8;
 }
 
 .tab-content {
@@ -25,6 +102,9 @@ body { background-color: var(--bg-slate); color: #1e293b; -webkit-tap-highlight-
 /* 달력 날짜 스타일 */
 .calendar-date {
     transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .calendar-date:active {
@@ -34,4 +114,116 @@ body { background-color: var(--bg-slate); color: #1e293b; -webkit-tap-highlight-
 /* 모달 스타일 */
 #meal-modal {
     animation: fadeIn 0.3s ease-out;
+}
+
+#meal-modal .bg-white {
+    max-width: calc(100vw - 1.5rem);
+}
+
+/* 반응형 텍스트 크기 */
+@media (max-width: 640px) {
+    body {
+        font-size: 15px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .title {
+        font-size: 1rem;
+    }
+}
+
+/* 버튼 터치 친화성 */
+button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.625rem 1rem;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    button {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* 입력 필드 확대 방지 */
+input, textarea, select {
+    font-size: 16px !important;
+}
+
+/* 스크롤 부드럽게 */
+html {
+    scroll-behavior: smooth;
+}
+
+/* 인쇄 스타일 */
+@media print {
+    body {
+        background: white;
+    }
+    .no-print {
+        display: none !important;
+    }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+    .card {
+        background: #1e293b;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    
+    body {
+        background-color: #0f172a;
+        color: #e2e8f0;
+    }
+}
+
+/* 모션 감소 설정 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* 큰 화면에서 팝오버 모달 */
+@media (min-width: 768px) {
+    #meal-modal .bg-white {
+        border-radius: 1.5rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* 달력 반응형 그리드 */
+@media (max-width: 640px) {
+    .calendar-date {
+        padding: 0.5rem !important;
+        font-size: 0.875rem;
+    }
+}
+
+/* 로딩 상태 */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #10b981;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
