@@ -44,20 +44,24 @@ async function getMealForDate(date) {
                 
                 console.log(`[${dateStr} 끼니${mealCode}] API응답:`, data);
                 
-                if (data && data.mealServiceDietInfo) {
-                    const mealInfo = data.mealServiceDietInfo[0];
+                // mealServiceDietInfo[1].row[0].DDISH_NM 구조로 접근
+                if (data && data.mealServiceDietInfo && Array.isArray(data.mealServiceDietInfo) && data.mealServiceDietInfo.length > 1) {
+                    const mealInfo = data.mealServiceDietInfo[1];
                     if (mealInfo && mealInfo.row && Array.isArray(mealInfo.row) && mealInfo.row.length > 0) {
                         const dishes = mealInfo.row[0].DDISH_NM;
                         mealData[mealCode] = dishes
                             .replace(/[0-9.]/g, "")
                             .replace(/\(\)/g, "")
-                            .replace(/<br\/>/g, ", ")
+                            .replace(/<br\/>/g, "\n")
                             .trim();
+                        console.log(`[${dateStr} 끼니${mealCode}] 파싱된 급식:`, mealData[mealCode]);
                     } else {
                         mealData[mealCode] = "급식 정보 없음";
+                        console.log(`[${dateStr} 끼니${mealCode}] row 없음`);
                     }
                 } else {
                     mealData[mealCode] = "급식 정보 없음";
+                    console.log(`[${dateStr} 끼니${mealCode}] mealServiceDietInfo 구조 오류`);
                 }
             } catch (err) {
                 console.error(`[${dateStr} 끼니${mealCode}] 에러:`, err);
@@ -110,7 +114,8 @@ function showMeal(t) {
         const dateStr = year + month + day;
         
         const meal = (mealStore[dateStr] && mealStore[dateStr][t]) ? mealStore[dateStr][t] : "정보 없음";
-        container.innerHTML = `<div class="w-full bg-${cfg}-50 p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-sm text-${cfg}-400 font-black mb-4">${names[t]}</p><p class="text-lg font-bold text-gray-700 leading-relaxed">${meal}</p></div>`;
+        const mealDisplay = meal.replace(/\n/g, "<br/>");
+        container.innerHTML = `<div class="w-full bg-${cfg}-50 p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-sm text-${cfg}-400 font-black mb-4">${names[t]}</p><p class="text-base font-semibold text-gray-700 leading-relaxed whitespace-pre-wrap">${mealDisplay}</p></div>`;
     }
 }
 
@@ -217,10 +222,11 @@ async function openMealModal(dateStr) {
     for (let mealCode = 1; mealCode <= 3; mealCode++) {
         const mealInfo = mealColors[mealCode];
         const meal = (mealData[mealCode]) ? mealData[mealCode] : "정보 없음";
+        const mealDisplay = meal.replace(/\n/g, "<br/>");
         modalContent += `
             <div class="${mealInfo.bg} ${mealInfo.border} border-l-4 p-4 rounded-lg">
                 <p class="text-sm font-black ${mealInfo.text} mb-2">${mealInfo.name}</p>
-                <p class="text-gray-700 text-sm leading-relaxed">${meal}</p>
+                <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">${mealDisplay}</p>
             </div>
         `;
     }
