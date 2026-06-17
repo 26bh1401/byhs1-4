@@ -23,7 +23,7 @@ html {
 
 body { 
     background-color: var(--bg-slate); 
-    color: #1e293b;
+    color: #1e293b; /* 글자색을 어두운 톤으로 유지하여 가독성 확보 */
     width: 100%;
     overflow-x: hidden;
 }
@@ -37,13 +37,19 @@ body {
     padding-bottom: calc(var(--safe-bottom) + 2rem);
 }
 
-/* 기본 카드 스타일 */
+/* 기본 카드 스타일 - 남색 배경 대신 흰색/밝은 회색 배경으로 변경 */
 .card { 
     background: white; 
     border-radius: 1.5rem; 
     padding: 1.5rem; 
     margin-bottom: 1.25rem; 
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* 만약 식단표 전체를 감싸는 외각 컨테이너에 남색(#1e293b 등)이 적용되어 있다면 */
+/* 그 클래스명을 찾아 아래와 같이 투명하게 또는 밝게 수정해야 합니다. */
+.meal-container {
+    background: transparent; /* 또는 background: white; */
 }
 
 @media (max-width: 640px) {
@@ -53,7 +59,9 @@ body {
     }
 }
 
+/* 타이틀 글자색 변경 (남색 배경에서 흰색이었던 경우를 대비해 어두운 색으로 지정) */
 .title { 
+    color: #1e293b;
     font-size: 1.125rem; 
     font-weight: 800; 
     display: flex; 
