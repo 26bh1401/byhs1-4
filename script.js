@@ -20,7 +20,25 @@ const db = getFirestore();
 let mealStore = {}; // 날짜별 급식 정보
 let currentCalendarDate = new Date();
 
-// API에서 급식 정보 가져오기
+// Service Worker 등록
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+        console.log('ServiceWorker 등록 실패:', err);
+    });
+}
+
+// 온라인/오프라인 상태 감지
+window.addEventListener('online', () => {
+    console.log('온라인 상태 복귀');
+    document.body.classList.remove('offline');
+});
+
+window.addEventListener('offline', () => {
+    console.log('오프라인 상태');
+    document.body.classList.add('offline');
+});
+
+// API에서 급식 정보 가져오기 (캐싱 포함)
 async function getMealForDate(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -39,7 +57,9 @@ async function getMealForDate(date) {
         // 각 끼니별로 API 호출
         for (let mealCode of [1, 2, 3]) {
             try {
-                const response = await fetch(`${url}&MMEAL_SC_CODE=${mealCode}`);
+                const response = await fetch(`${url}&MMEAL_SC_CODE=${mealCode}`, {
+                    signal: AbortSignal.timeout(5000) // 5초 타임아웃
+                });
                 const data = await response.json();
                 
                 console.log(`[${dateStr} 끼니${mealCode}] API응답:`, data);
@@ -102,7 +122,7 @@ function showMeal(t) {
     [1, 2, 3].forEach(i => {
         const b = document.getElementById(`btn-meal-${i}`);
         if (b) {
-            b.className = i === t ? `px-5 py-2.5 rounded-xl bg-white shadow text-${cfg}-600 font-black` : `px-5 py-2.5 rounded-xl text-gray-400 font-bold`;
+            b.className = i === t ? `flex-1 md:flex-none px-3 md:px-5 py-2.5 rounded-xl bg-white shadow text-${cfg}-600 font-black` : `flex-1 md:flex-none px-3 md:px-5 py-2.5 rounded-xl text-gray-400 font-bold`;
         }
     });
     const container = document.getElementById('meal-display-container');
@@ -115,7 +135,7 @@ function showMeal(t) {
         
         const meal = (mealStore[dateStr] && mealStore[dateStr][t]) ? mealStore[dateStr][t] : "정보 없음";
         const mealDisplay = meal.replace(/\n/g, "<br/>");
-        container.innerHTML = `<div class="w-full bg-${cfg}-50 p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-sm text-${cfg}-400 font-black mb-4">${names[t]}</p><p class="text-base font-semibold text-gray-700 leading-relaxed whitespace-pre-wrap">${mealDisplay}</p></div>`;
+        container.innerHTML = `<div class="w-full bg-${cfg}-50 p-6 md:p-8 rounded-[2.5rem] text-center animate-fadeIn"><p class="text-xs md:text-sm text-${cfg}-400 font-black mb-3 md:mb-4">${names[t]}</p><p class="text-sm md:text-base text-gray-700 leading-relaxed md:leading-relaxed whitespace-pre-wrap">${mealDisplay}</p></div>`;
     }
 }
 
@@ -132,10 +152,10 @@ function generateCalendar(date) {
     // 달력 헤더
     const dayHeaders = ['일', '월', '화', '수', '목', '금', '토'];
     let calendarHTML = `
-        <div class="grid grid-cols-7 gap-2 mb-4">
-            ${dayHeaders.map(day => `<div class="text-center font-black text-gray-600 py-2 text-sm">${day}</div>`).join('')}
+        <div class="grid grid-cols-7 gap-1.5 md:gap-2 mb-3 md:mb-4">
+            ${dayHeaders.map(day => `<div class="text-center font-black text-gray-600 py-2 text-xs md:text-sm">${day}</div>`).join('')}
         </div>
-        <div class="grid grid-cols-7 gap-2">
+        <div class="grid grid-cols-7 gap-1.5 md:gap-2">
     `;
 
     // 첫 번째 요일
@@ -143,7 +163,7 @@ function generateCalendar(date) {
     
     // 이전 달의 마지막 날들
     for (let i = firstDay - 1; i >= 0; i--) {
-        calendarHTML += `<div class="p-3 text-center text-gray-300 bg-gray-50 rounded-lg"></div>`;
+        calendarHTML += `<div class="p-2 md:p-3 text-center text-gray-300 bg-gray-50 rounded-lg text-xs md:text-sm"></div>`;
     }
 
     // 현재 달의 날들
@@ -163,7 +183,7 @@ function generateCalendar(date) {
         const borderClass = isToday ? 'border-2 border-blue-500' : '';
 
         calendarHTML += `
-            <div class="cursor-pointer p-3 text-center rounded-lg font-bold text-sm ${backgroundColor} ${textColor} ${borderClass} hover:shadow-lg transition transform hover:scale-105 calendar-date" 
+            <div class="cursor-pointer p-2 md:p-3 text-center rounded-lg font-bold text-xs md:text-sm ${backgroundColor} ${textColor} ${borderClass} hover:shadow-lg transition transform hover:scale-105 calendar-date active:scale-95"
                  data-date="${dateStr}" onclick="openMealModal('${dateStr}')">
                 ${day}
             </div>
@@ -174,7 +194,7 @@ function generateCalendar(date) {
     const totalCells = Math.ceil((firstDay + lastDate) / 7) * 7;
     const nextDays = totalCells - firstDay - lastDate;
     for (let i = 1; i <= nextDays; i++) {
-        calendarHTML += `<div class="p-3 text-center text-gray-300 bg-gray-50 rounded-lg"></div>`;
+        calendarHTML += `<div class="p-2 md:p-3 text-center text-gray-300 bg-gray-50 rounded-lg text-xs md:text-sm"></div>`;
     }
 
     calendarHTML += `</div>`;
@@ -192,7 +212,8 @@ async function loadMealsForMonth(year, month) {
         const date = new Date(year, month, day - 1);
         const dateStr = year + String(month + 1).padStart(2, '0') + String(day).padStart(2, '0');
         if (!mealStore[dateStr]) {
-            await getMealForDate(new Date(year, month, day));
+            // 비동기 작업이지만 await하지 않음 (백그라운드 로딩)
+            getMealForDate(new Date(year, month, day)).catch(e => console.error('월 데이터 로드 오류:', e));
         }
     }
 }
@@ -224,19 +245,23 @@ async function openMealModal(dateStr) {
         const meal = (mealData[mealCode]) ? mealData[mealCode] : "정보 없음";
         const mealDisplay = meal.replace(/\n/g, "<br/>");
         modalContent += `
-            <div class="${mealInfo.bg} ${mealInfo.border} border-l-4 p-4 rounded-lg">
-                <p class="text-sm font-black ${mealInfo.text} mb-2">${mealInfo.name}</p>
-                <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">${mealDisplay}</p>
+            <div class="${mealInfo.bg} ${mealInfo.border} border-l-4 p-3 md:p-4 rounded-lg">
+                <p class="text-xs md:text-sm font-black ${mealInfo.text} mb-2">${mealInfo.name}</p>
+                <p class="text-gray-700 text-xs md:text-sm leading-relaxed whitespace-pre-wrap">${mealDisplay}</p>
             </div>
         `;
     }
 
     document.getElementById('modal-content').innerHTML = modalContent;
     document.getElementById('meal-modal').classList.remove('hidden');
+    
+    // 모바일에서 스크롤 잠금
+    document.body.style.overflow = 'hidden';
 }
 
 function closeMealModal() {
     document.getElementById('meal-modal').classList.add('hidden');
+    document.body.style.overflow = '';
 }
 
 // --- 탭 전환 기능 ---
@@ -315,6 +340,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeMealModal();
             }
         };
+    }
+
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !document.getElementById('meal-modal').classList.contains('hidden')) {
+            closeMealModal();
+        }
+    });
+
+    // 모바일 뷰포트 높이 조정 (주소표시줄 때문에 변하는 높이)
+    const setVh = () => {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
+
+    // 큰 화면에서 터치 이벤트 지원
+    if ('ontouchstart' in window) {
+        document.body.classList.add('touch-device');
     }
 });
 
