@@ -1,3 +1,13 @@
+/**
+ * :root {
+ * --accent-meal: #10b981;
+ * --bg-slate: #f8fafc;
+ * --safe-top: max(0px, env(safe-area-inset-top));
+ * --safe-bottom: max(0px, env(safe-area-inset-bottom));
+ * --safe-left: max(0px, env(safe-area-inset-left));
+ * --safe-right: max(0px, env(safe-area-inset-right));
+ * }
+ */
 :root {
     --accent-meal: #10b981;
     --bg-slate: #f8fafc;
@@ -13,6 +23,7 @@
     box-sizing: border-box; 
     font-family: 'Pretendard', sans-serif;
     -webkit-tap-highlight-color: transparent;
+    font-weight: bold !important; /* 모든 요소의 텍스트를 강제로 볼드체로 지정 */
 }
 
 html {
@@ -23,12 +34,13 @@ html {
 
 body { 
     background-color: var(--bg-slate); 
-    color: #1e293b; /* 글자색을 어두운 톤으로 유지하여 가독성 확보 */
+    color: #1e293b;
     width: 100%;
     overflow-x: hidden;
+    font-weight: bold;
 }
 
-/* 안전 영역 처리 */
+/* **안전 영역 처리** */
 .safe-top {
     padding-top: calc(var(--safe-top) + 1.5rem);
 }
@@ -37,7 +49,7 @@ body {
     padding-bottom: calc(var(--safe-bottom) + 2rem);
 }
 
-/* 기본 카드 스타일 - 남색 배경 대신 흰색/밝은 회색 배경으로 변경 */
+/* **기본 카드 스타일 - 남색 배경 제거 및 흰색 유지** */
 .card { 
     background: white; 
     border-radius: 1.5rem; 
@@ -46,10 +58,9 @@ body {
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-/* 만약 식단표 전체를 감싸는 외각 컨테이너에 남색(#1e293b 등)이 적용되어 있다면 */
-/* 그 클래스명을 찾아 아래와 같이 투명하게 또는 밝게 수정해야 합니다. */
+/* **식단표 외각 컨테이너가 남색일 경우 투명화** */
 .meal-container {
-    background: transparent; /* 또는 background: white; */
+    background: transparent;
 }
 
 @media (max-width: 640px) {
@@ -59,17 +70,16 @@ body {
     }
 }
 
-/* 타이틀 글자색 변경 (남색 배경에서 흰색이었던 경우를 대비해 어두운 색으로 지정) */
 .title { 
     color: #1e293b;
     font-size: 1.125rem; 
-    font-weight: 800; 
+    font-weight: 800; /* 기존 800(Heavy Bold) 유지 */
     display: flex; 
     align-items: center; 
     gap: 0.5rem;
 }
 
-/* 페이드인 애니메이션 */
+/* **페이드인 애니메이션** */
 .animate-fadeIn { 
     animation: fadeIn 0.4s ease-out forwards; 
 }
@@ -79,7 +89,7 @@ body {
     to { opacity: 1; transform: translateY(0); } 
 }
 
-/* 모바일 슬라이드업 애니메이션 */
+/* **모바일 슬라이드업 애니메이션** */
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(100%); }
     to { opacity: 1; transform: translateY(0); }
@@ -89,7 +99,7 @@ body {
     animation: slideUp 0.3s ease-out forwards;
 }
 
-/* 탭 스타일 */
+/* **탭 스타일** */
 .tab-btn {
     cursor: pointer;
     white-space: nowrap;
@@ -97,6 +107,7 @@ body {
     transition: all 0.2s ease;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
+    font-weight: bold;
 }
 
 .tab-btn:active {
@@ -107,19 +118,20 @@ body {
     animation: fadeIn 0.3s ease-out;
 }
 
-/* 달력 날짜 스타일 */
+/* **달력 날짜 스타일** */
 .calendar-date {
     transition: all 0.2s ease;
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
+    font-weight: bold;
 }
 
 .calendar-date:active {
     transform: scale(0.95);
 }
 
-/* 모달 스타일 */
+/* **모달 스타일** */
 #meal-modal {
     animation: fadeIn 0.3s ease-out;
 }
@@ -128,7 +140,7 @@ body {
     max-width: calc(100vw - 1.5rem);
 }
 
-/* 반응형 텍스트 크기 */
+/* **반응형 텍스트 크기** */
 @media (max-width: 640px) {
     body {
         font-size: 15px;
@@ -143,11 +155,12 @@ body {
     }
 }
 
-/* 버튼 터치 친화성 */
+/* **버튼 터치 친화성** */
 button {
     min-height: 44px;
     min-width: 44px;
     padding: 0.625rem 1rem;
+    font-weight: bold;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -156,17 +169,18 @@ button {
     }
 }
 
-/* 입력 필드 확대 방지 */
+/* **입력 필드 확대 방지 및 볼드체 적용** */
 input, textarea, select {
     font-size: 16px !important;
+    font-weight: bold !important;
 }
 
-/* 스크롤 부드럽게 */
+/* **스크롤 부드럽게** */
 html {
     scroll-behavior: smooth;
 }
 
-/* 인쇄 스타일 */
+/* **인쇄 스타일** */
 @media print {
     body {
         background: white;
@@ -176,7 +190,7 @@ html {
     }
 }
 
-/* 모션 감소 설정 */
+/* **모션 감소 설정** */
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
@@ -186,7 +200,7 @@ html {
     }
 }
 
-/* 큰 화면에서 팝오버 모달 */
+/* **큰 화면에서 팝오버 모달** */
 @media (min-width: 768px) {
     #meal-modal .bg-white {
         border-radius: 1.5rem;
@@ -195,7 +209,7 @@ html {
     }
 }
 
-/* 달력 반응형 그리드 */
+/* **달력 반응형 그리드** */
 @media (max-width: 640px) {
     .calendar-date {
         padding: 0.5rem !important;
@@ -203,7 +217,7 @@ html {
     }
 }
 
-/* 로딩 상태 */
+/* **로딩 상태** */
 .loading {
     opacity: 0.6;
     pointer-events: none;
