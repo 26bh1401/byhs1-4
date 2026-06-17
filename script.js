@@ -17,10 +17,10 @@ const auth = getAuth();
 const db = getFirestore();
 
 // --- 급식 데이터 저장소 ---
-let mealStore = {}; // 날짜별 급식 정보: { "20250115": { 1: "조식", 2: "중식", 3: "석식" }, ... }
+let mealStore = {}; // 날짜별 급식 정보
 let currentCalendarDate = new Date();
 
-// API에서 급식 정보 가��오기
+// API에서 급식 정보 가져오기
 async function getMealForDate(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -39,19 +39,29 @@ async function getMealForDate(date) {
             [1, 2, 3].map(c => 
                 fetch(`${url}&MMEAL_SC_CODE=${c}`)
                     .then(r => r.json())
-                    .catch(() => ({ mealServiceDietInfo: null }))
+                    .catch(() => null)
             )
         );
         
         resArr.forEach((d, i) => {
             const mealCode = i + 1;
-            if (d.mealServiceDietInfo && d.mealServiceDietInfo[1]) {
-                mealData[mealCode] = d.mealServiceDietInfo[1].row[0].DDISH_NM
-                    .replace(/[0-9.]/g, "")
-                    .replace(/\(\)/g, "")
-                    .replace(/<br\/>/g, ", ");
-            } else {
-                mealData[mealCode] = "정보 없음";
+            try {
+                if (d && d.mealServiceDietInfo && Array.isArray(d.mealServiceDietInfo) && d.mealServiceDietInfo.length > 0) {
+                    const mealInfo = d.mealServiceDietInfo[0];
+                    if (mealInfo.row && mealInfo.row.length > 0) {
+                        mealData[mealCode] = mealInfo.row[0].DDISH_NM
+                            .replace(/[0-9.]/g, "")
+                            .replace(/\(\)/g, "")
+                            .replace(/<br\/>/g, ", ")
+                            .trim();
+                    } else {
+                        mealData[mealCode] = "급식 정보 없음";
+                    }
+                } else {
+                    mealData[mealCode] = "급식 정보 없음";
+                }
+            } catch (err) {
+                mealData[mealCode] = "급식 정보 없음";
             }
         });
         
