@@ -11,3 +11,27 @@ body { background-color: var(--bg-slate); color: #1e293b; -webkit-tap-highlight-
 
 .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 탭 스타일 */
+.tab-btn {
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab-content {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* 달력 날짜 스타일 */
+.calendar-date {
+    transition: all 0.2s ease;
+}
+
+.calendar-date:active {
+    transform: scale(0.95);
+}
+
+/* 모달 스타일 */
+#meal-modal {
+    animation: fadeIn 0.3s ease-out;
+}
